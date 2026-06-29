@@ -1,17 +1,10 @@
 <script lang="ts">
     import "./layout.css";
-    import favicon from "$lib/assets/favicon.svg";
-    import { locale, t } from "svelte-i18n";
+    import { t } from "svelte-i18n";
     import { setLanguage } from "$lib/i18n";
-
-    // Import i18n initialization to register messages
     import "$lib/i18n";
 
     let { children } = $props();
-
-    const toggleLang = () => {
-        setLanguage($locale === "en" ? "ru" : "en");
-    };
 </script>
 
 <svelte:head>
@@ -441,9 +434,14 @@
         }
     </style></svelte:head
 >
-<div class="lang-switcher">
-    <button onclick={toggleLang} class="lang-btn">
-        {$locale === "en" ? "RU" : "EN"}
-    </button>
-</div>
+<select
+    class="lang-switcher"
+    onchange={(e) => {
+        const target = e.target as HTMLSelectElement;
+        setLanguage(target.value as "en" | "ru");
+    }}
+>
+    <option value="en">EN</option>
+    <option value="ru">RU</option>
+</select>
 {@render children()}

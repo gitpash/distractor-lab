@@ -2,7 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { gameModes, MODES, type GameMode } from "$lib";
-    import { t } from "svelte-i18n"; // $t alias from svelte-i18n
+    import { t } from "svelte-i18n";
 
     // Reactive game mode from the URL (works on server and client)
     const selectedGameMode = $derived(
@@ -68,6 +68,9 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         margin-bottom: 24px;
+        @media (400px >= width) {
+            grid-template-columns: repeat(1, 1fr);
+        }
     }
     .mode-card {
         background: var(--bg-secondary);
