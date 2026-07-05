@@ -106,11 +106,6 @@ export function getAccuracy(state: GameState): string {
   return ((state.correct / state.total) * 100).toFixed(0) + '%';
 }
 
-export function getAccuracyNumber(state: GameState): number {
-  if (state.total === 0) return 0;
-  return (state.correct / state.total) * 100;
-}
-
 export function getProgress(state: GameState): number {
   return (state.trial / state.numTrials) * 100;
 }

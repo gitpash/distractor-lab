@@ -10,15 +10,6 @@ export const ORIENTATIONS = {
 };
 const ORIENT_KEYS = Object.keys(ORIENTATIONS) as (keyof typeof ORIENTATIONS)[];
 
-// SVG icons matching stripe orientation (used in buttons and feedback)
-// function orientIcon(angle) {
-//   const a = angle - 90; // 0°=horiz needs horizontal line
-//   const x1 = 50 + 40 * Math.cos((a * Math.PI) / 180);
-//   const y1 = 50 + 40 * Math.sin((a * Math.PI) / 180);
-//   const x2 = 50 - 40 * Math.cos((a * Math.PI) / 180);
-//   const y2 = 50 - 40 * Math.sin((a * Math.PI) / 180);
-//   return `<svg width="22" height="22" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle;margin-right:2px;"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>`;
-// }
 const randomOrient = (): keyof typeof ORIENTATIONS =>
   ORIENT_KEYS[Math.floor(Math.random() * ORIENT_KEYS.length)];
 
@@ -198,10 +189,6 @@ export const MODES = {
 const objectKeys = <Obj extends {}>(obj: Obj): (keyof Obj)[] => {
   return Object.keys(obj) as (keyof Obj)[];
 };
-type Entries<T> = [keyof T, T[keyof T]][];
-const objectEntries = <Obj extends {}>(obj: Obj) =>
-  Object.entries(obj) as Entries<typeof obj>;
 
-export const gameModeEntries = objectEntries(MODES);
 export const gameModes = objectKeys(MODES);
 export type GameMode = (typeof gameModes)[number];

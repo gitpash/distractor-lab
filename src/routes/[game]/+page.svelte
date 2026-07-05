@@ -19,7 +19,8 @@
     import CrtOverlay from "$lib/crt-overlay.svelte";
     import KeyHints from "$lib/key-hints.svelte";
     import PixelIcon from "$lib/pixel-icons.svelte";
-    import { initHaptics, triggerHaptic, destroyHaptics, hapticTrigger, getPlatform } from "$lib/game/haptics";
+    import AnswerTiles from "$lib/AnswerTiles.svelte";
+    import { initHaptics, triggerHaptic, destroyHaptics, getPlatform } from "$lib/game/haptics";
     import { onMount } from "svelte";
 
     onMount(() => {
@@ -294,48 +295,7 @@
 
     {#if !isDemo}
         {#if isMobile}
-            <div class="answer-tiles">
-                {#each [{ key: "horiz", keys: "A/D", label: $t("orientations.horiz"), angle: 0 }, { key: "diag1", keys: "E", label: $t("orientations.diag1"), angle: 45 }, { key: "vert", keys: "W/S", label: $t("orientations.vert"), angle: 90 }, { key: "diag2", keys: "Q", label: $t("orientations.diag2"), angle: 135 }] as tile}
-                    <button
-                        class="answer-tile"
-                        onclick={() => handleAnswer(tile.key)}
-                        {@attach isIOS ? hapticTrigger : undefined}
-                    >
-                        <svg class="tile-icon" viewBox="0 0 40 40">
-                            <line
-                                x1={20 +
-                                    16 *
-                                        Math.cos(
-                                            ((tile.angle - 90) * Math.PI) / 180,
-                                        )}
-                                y1={20 +
-                                    16 *
-                                        Math.sin(
-                                            ((tile.angle - 90) * Math.PI) / 180,
-                                        )}
-                                x2={20 -
-                                    16 *
-                                        Math.cos(
-                                            ((tile.angle - 90) * Math.PI) / 180,
-                                        )}
-                                y2={20 -
-                                    16 *
-                                        Math.sin(
-                                            ((tile.angle - 90) * Math.PI) / 180,
-                                        )}
-                                stroke="currentColor"
-                                stroke-width="4"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                        <span class="tile-label">{tile.label}</span>
-                        <span class="tile-keys">{tile.keys}</span>
-                    </button>
-                {/each}
-                <button class="answer-tile skip" onclick={handleSkip} {@attach isIOS ? hapticTrigger : undefined}
-                    >{$t("actions.skip")}</button
-                >
-            </div>
+            <AnswerTiles onAnswer={handleAnswer} onSkip={handleSkip} {isIOS} />
         {:else}
             <KeyHints layout="answers" />
         {/if}
@@ -471,58 +431,5 @@
     #feedbackLabel.wrong {
         background: rgba(255, 64, 96, 0.9);
         color: #fff;
-    }
-    .answer-tiles {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-top: 12px;
-        width: 100%;
-        max-width: 400px;
-    }
-    .answer-tile {
-        background: var(--bg-secondary);
-        border: 2px solid var(--border);
-        color: var(--text-primary);
-        padding: 12px 8px;
-        cursor: pointer;
-        font-family: inherit;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        transition: all 0.15s;
-        min-height: 80px;
-        justify-content: center;
-    }
-    .answer-tile:active {
-        transform: scale(0.95);
-        border-color: var(--accent);
-        background: rgba(0, 229, 255, 0.1);
-    }
-    .answer-tile.skip {
-        background: var(--bg-tertiary);
-        color: var(--text-secondary);
-        font-size: 12px;
-        border-style: dashed;
-    }
-    .tile-icon {
-        width: 36px;
-        height: 36px;
-        color: var(--accent);
-        flex-shrink: 0;
-    }
-    .tile-label {
-        font-size: 12px;
-        color: var(--text-primary);
-        font-weight: 600;
-    }
-    .tile-keys {
-        font-size: 9px;
-        color: var(--text-muted);
-        font-family: "SF Mono", "Menlo", monospace;
-        background: var(--bg-tertiary);
-        padding: 1px 6px;
-        border-radius: 3px;
     }
 </style>
