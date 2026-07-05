@@ -294,40 +294,6 @@
         box-shadow: 0 0 20px var(--accent-glow);
     }
 
-    /* ===== HOVER: unique quick animation per icon ===== */
-    :global(.mode-card:hover .icon-classic) { animation: hCoinFlip 0.5s ease-in-out; }
-    :global(.mode-card:hover .icon-frequency) { animation: hBreath 0.4s ease-in-out; }
-    :global(.mode-card:hover .icon-noise) { animation: hStatic 0.3s steps(3); }
-    :global(.mode-card:hover .icon-fine) { animation: hBlink 0.4s ease-in-out; }
-    :global(.mode-card:hover .icon-combo) { animation: hShake 0.4s ease-in-out; }
-
-    @keyframes hCoinFlip {
-        0% { transform: rotateY(0deg); }
-        50% { transform: rotateY(180deg) scale(0.85); }
-        100% { transform: rotateY(360deg); }
-    }
-    @keyframes hBreath {
-        0%, 100% { transform: scaleX(1); }
-        50% { transform: scaleX(1.15); }
-    }
-    @keyframes hStatic {
-        0% { transform: translate(1px, -1px); }
-        33% { transform: translate(-1px, 1px); }
-        66% { transform: translate(1px, 0px); }
-        100% { transform: translate(0px, 0px); }
-    }
-    @keyframes hBlink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
-    @keyframes hShake {
-        0%, 100% { transform: rotate(0deg); }
-        20% { transform: rotate(-15deg); }
-        40% { transform: rotate(12deg); }
-        60% { transform: rotate(-8deg); }
-        80% { transform: rotate(4deg); }
-    }
-
     /* History */
     .history-section {
         margin-top: 36px;

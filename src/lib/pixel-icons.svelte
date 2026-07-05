@@ -1,11 +1,51 @@
 <script lang="ts">
+    import { transition, getAnimClass, type AnimState } from "$lib/game/icon-animation";
+
     type IconName = "classic" | "frequency" | "noise" | "fine" | "combo";
     let { name, active = false }: { name: IconName; active?: boolean } = $props();
+
+    let animState: AnimState = $state('idle');
+    let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Sync with external active prop
+    $effect(() => {
+        if (active && animState !== 'active') {
+            animState = transition(animState, { type: 'SELECT' });
+        } else if (!active && animState === 'active') {
+            animState = transition(animState, { type: 'DESELECT' });
+        }
+    });
+
+    function handlePointerEnter() {
+        animState = transition(animState, { type: 'HOVER_START' });
+        hoverTimeout = setTimeout(() => {
+            animState = transition(animState, { type: 'HOVER_END', selected: active });
+        }, 500);
+    }
+
+    function handlePointerLeave() {
+        if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
+        animState = transition(animState, { type: 'HOVER_END', selected: active });
+    }
+
+    function handleAnimationEnd() {
+        animState = transition(animState, { type: 'ANIMATION_END', selected: active });
+    }
+
+    const animClass = $derived(getAnimClass(animState, name));
 </script>
 
 {#if name === "classic"}
     <!-- Gabor patch: concentric rings with center dot -->
-    <svg class="pixel-icon icon-classic" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        class="pixel-icon icon-classic {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
         <g class="icon-rings">
             <!-- outer ring -->
             <rect x="3" y="0" width="1" height="1" fill="currentColor"/>
@@ -71,7 +111,15 @@
 
 {:else if name === "frequency"}
     <!-- Vertical stripes that can wave -->
-    <svg class="pixel-icon icon-frequency" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        class="pixel-icon icon-frequency {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
         <g class="icon-stripes">
             <!-- stripe 1 -->
             <rect x="1" y="0" width="1" height="12" fill="currentColor"/>
@@ -95,7 +143,15 @@
 
 {:else if name === "noise"}
     <!-- Static noise pattern -->
-    <svg class="pixel-icon icon-noise" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        class="pixel-icon icon-noise {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
         <g class="icon-static">
             <rect x="0" y="0" width="1" height="1" fill="currentColor"/>
             <rect x="2" y="0" width="1" height="1" fill="currentColor"/>
@@ -166,7 +222,15 @@
 
 {:else if name === "fine"}
     <!-- Two targets (2AFC) -->
-    <svg class="pixel-icon icon-fine" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        class="pixel-icon icon-fine {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
         <g class="icon-target-a">
             <!-- left target outer -->
             <rect x="0" y="2" width="1" height="1" fill="currentColor"/>
@@ -229,7 +293,15 @@
 
 {:else if name === "combo"}
     <!-- Dice — classic random symbol -->
-    <svg class="pixel-icon icon-combo" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        class="pixel-icon icon-combo {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
         <g class="icon-dice">
             <!-- outer border -->
             <rect x="1" y="0" width="10" height="1" fill="currentColor"/>
@@ -255,6 +327,40 @@
         color: var(--accent);
         image-rendering: pixelated;
         transition: transform 0.2s;
+    }
+
+    /* ===== HOVER: quick animation per mode ===== */
+    .icon-classic.hover { animation: hCoinFlip 0.5s ease-in-out; }
+    .icon-frequency.hover { animation: hBreath 0.4s ease-in-out; }
+    .icon-noise.hover { animation: hStatic 0.3s steps(3); }
+    .icon-fine.hover { animation: hBlink 0.4s ease-in-out; }
+    .icon-combo.hover { animation: hShake 0.4s ease-in-out; }
+
+    @keyframes hCoinFlip {
+        0% { transform: rotateY(0deg); }
+        50% { transform: rotateY(180deg) scale(0.85); }
+        100% { transform: rotateY(360deg); }
+    }
+    @keyframes hBreath {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(1.15); }
+    }
+    @keyframes hStatic {
+        0% { transform: translate(1px, -1px); }
+        33% { transform: translate(-1px, 1px); }
+        66% { transform: translate(1px, 0px); }
+        100% { transform: translate(0px, 0px); }
+    }
+    @keyframes hBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    @keyframes hShake {
+        0%, 100% { transform: rotate(0deg); }
+        20% { transform: rotate(-15deg); }
+        40% { transform: rotate(12deg); }
+        60% { transform: rotate(-8deg); }
+        80% { transform: rotate(4deg); }
     }
 
     /* ===== ACTIVE: slow continuous loop per mode ===== */

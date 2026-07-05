@@ -228,7 +228,6 @@
 <div class="game-screen">
     {#if isDemo}
         <div id="topBar">
-            <div class="mode-badge">◎ {$t("actions.demo")}</div>
             <div class="progress-track">
                 <div class="progress-fill" style="width: {(demoIndex / demoOrients.length) * 100}%"></div>
             </div>
@@ -237,10 +236,6 @@
         <div class="hud"><span class="hud-stat">{demoLabel}</span></div>
     {:else}
         <div id="topBar">
-            <div class="mode-badge">
-                <PixelIcon name={gameMode as any} active />
-                {modeConfig?.title || gameMode}
-            </div>
             <div class="progress-track">
                 <div class="progress-fill" style="width: {getProgress(gs)}%"></div>
             </div>
@@ -265,15 +260,25 @@
         {#if isMobile}
             <div class="answer-tiles">
                 {#each [
-                    { key: "horiz", arrow: "←", letters: "A/D", label: $t("orientations.horiz") },
-                    { key: "diag1", arrow: "↑", letters: "E", label: $t("orientations.diag1") },
-                    { key: "vert", arrow: "↓", letters: "W/S", label: $t("orientations.vert") },
-                    { key: "diag2", arrow: "→", letters: "Q", label: $t("orientations.diag2") },
+                    { key: "horiz", keys: "A/D", label: $t("orientations.horiz"), angle: 0 },
+                    { key: "diag1", keys: "E", label: $t("orientations.diag1"), angle: 45 },
+                    { key: "vert", keys: "W/S", label: $t("orientations.vert"), angle: 90 },
+                    { key: "diag2", keys: "Q", label: $t("orientations.diag2"), angle: 135 },
                 ] as tile}
                     <button class="answer-tile" onclick={() => handleAnswer(tile.key)}>
-                        <span class="tile-arrow">{tile.arrow}</span>
-                        <span class="tile-letters">{tile.letters}</span>
+                        <svg class="tile-icon" viewBox="0 0 40 40">
+                            <line
+                                x1={20 + 16 * Math.cos((tile.angle - 90) * Math.PI / 180)}
+                                y1={20 + 16 * Math.sin((tile.angle - 90) * Math.PI / 180)}
+                                x2={20 - 16 * Math.cos((tile.angle - 90) * Math.PI / 180)}
+                                y2={20 - 16 * Math.sin((tile.angle - 90) * Math.PI / 180)}
+                                stroke="currentColor"
+                                stroke-width="4"
+                                stroke-linecap="round"
+                            />
+                        </svg>
                         <span class="tile-label">{tile.label}</span>
+                        <span class="tile-keys">{tile.keys}</span>
                     </button>
                 {/each}
                 <button class="answer-tile skip" onclick={handleSkip}>{$t("actions.skip")}</button>
@@ -286,9 +291,7 @@
 
 <style>
     .game-screen { width: 100%; max-width: 600px; padding: 0 16px; display: flex; flex-direction: column; align-items: center; }
-    #topBar { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 0; }
-    .mode-badge { background: var(--accent-dim); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
-    .mode-badge :global(.pixel-icon) { width: 16px; height: 16px; margin: 0; image-rendering: auto; shape-rendering: crispEdges; }
+    #topBar { width: 100%; display: flex; align-items: center; gap: 12px; padding: 4px 0; }
     .progress-track { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.2s; }
     .trial-counter { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -311,10 +314,10 @@
     #feedbackLabel.correct { background: rgba(0, 255, 136, 0.9); color: #000; }
     #feedbackLabel.wrong { background: rgba(255, 64, 96, 0.9); color: #fff; }
     .answer-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; width: 100%; max-width: 400px; }
-    .answer-tile { background: var(--bg-secondary); border: 2px solid var(--border); color: var(--text-primary); padding: 12px 8px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.15s; min-height: 64px; justify-content: center; }
+    .answer-tile { background: var(--bg-secondary); border: 2px solid var(--border); color: var(--text-primary); padding: 12px 8px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: all 0.15s; min-height: 80px; justify-content: center; }
     .answer-tile:active { transform: scale(0.95); border-color: var(--accent); background: rgba(0, 229, 255, 0.1); }
     .answer-tile.skip { background: var(--bg-tertiary); color: var(--text-secondary); font-size: 12px; border-style: dashed; }
-    .tile-arrow { font-size: 20px; color: var(--accent); }
-    .tile-letters { font-size: 11px; color: var(--text-muted); font-family: "SF Mono", "Menlo", monospace; }
-    .tile-label { font-size: 10px; color: var(--text-secondary); }
+    .tile-icon { width: 36px; height: 36px; color: var(--accent); flex-shrink: 0; }
+    .tile-label { font-size: 12px; color: var(--text-primary); font-weight: 600; }
+    .tile-keys { font-size: 9px; color: var(--text-muted); font-family: "SF Mono", "Menlo", monospace; background: var(--bg-tertiary); padding: 1px 6px; border-radius: 3px; }
 </style>
