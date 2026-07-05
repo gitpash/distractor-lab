@@ -23,33 +23,16 @@
     import { onMount } from "svelte";
 
     let haptics: WebHaptics | null = null;
-    let hapticSupported = false;
 
     onMount(() => {
-        hapticSupported = WebHaptics.isSupported;
-        console.log("[haptics] isSupported:", hapticSupported);
-        console.log("[haptics] navigator.vibrate:", typeof navigator.vibrate);
-        if (hapticSupported) {
-            haptics = new WebHaptics({ debug: true });
-            console.log("[haptics] initialized:", haptics);
-        } else {
-            console.log("[haptics] not supported on this device — using fallback");
-        }
+        // Always initialize — library handles iOS Safari via <input type="checkbox" switch> hack
+        haptics = new WebHaptics({ debug: true });
+        console.log("[haptics] initialized, isSupported:", WebHaptics.isSupported);
         return () => haptics?.destroy();
     });
 
     function haptic(type: "success" | "error" | "nudge") {
-        if (haptics) {
-            haptics.trigger(type);
-        } else if (navigator.vibrate) {
-            // Fallback: direct Vibration API patterns
-            const patterns = {
-                success: [30, 50, 40],
-                error: [40, 40, 40, 40, 40, 40],
-                nudge: [80, 80, 50],
-            };
-            navigator.vibrate(patterns[type]);
-        }
+        haptics?.trigger(type);
     }
 
     let canvasEl: HTMLCanvasElement;

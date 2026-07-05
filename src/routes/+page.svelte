@@ -12,23 +12,12 @@
 
     let haptics: WebHaptics | null = null;
     onMount(() => {
-        if (WebHaptics.isSupported) {
-            haptics = new WebHaptics();
-        }
+        haptics = new WebHaptics();
         return () => haptics?.destroy();
     });
 
     function haptic(type: "success" | "error" | "nudge") {
-        if (haptics) {
-            haptics.trigger(type);
-        } else if (navigator.vibrate) {
-            const patterns = {
-                success: [30, 50, 40],
-                error: [40, 40, 40, 40, 40, 40],
-                nudge: [80, 80, 50],
-            };
-            navigator.vibrate(patterns[type]);
-        }
+        haptics?.trigger(type);
     }
 
     const selectedGameMode = $derived(
