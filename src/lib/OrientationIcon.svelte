@@ -6,7 +6,7 @@
     };
     let { angle, size = 40, class: className = "" }: Props = $props();
 
-    const rad = $derived((angle - 90) * Math.PI / 180);
+    const rad = $derived(angle * Math.PI / 180);
     const cx = $derived(size / 2);
     const cy = $derived(size / 2);
     const r = $derived(size * 0.4);
