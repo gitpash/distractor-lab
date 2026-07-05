@@ -40,14 +40,32 @@ export default {
 	},
 	actions: {
 		start: "Начать",
+		skip: "Пропустить",
+		demo: "Показать ориентации",
+		playAgain: "Ещё раз",
+		home: "На главную",
 	},
 	orientations: {
 		horiz: "Горизонталь",
 		diag1: "45°",
 		vert: "Вертикаль",
 		diag2: "135°",
+		left: "Левый",
+		right: "Правый",
 	},
 	game: {
 		trialCounter: "Испытание {current}/{total}",
+		accuracy: "Точность",
+	},
+	results: {
+		title: "Тренировка завершена!",
+		accuracy: "точность",
+		trials: "Триалов",
+		difficulty: "Финальная сложность",
+		time: "Время",
+	},
+	history: {
+		title: "Прогресс",
+		clear: "Очистить историю",
 	},
 };

@@ -2,7 +2,7 @@
 // ORIENTATIONS — single source of truth
 // angle = direction stripes RUN (0°=horizontal, 90°=vertical)
 // =====================================================================
-const ORIENTATIONS = {
+export const ORIENTATIONS = {
   horiz: { angle: 0, labelKey: "orientations.horiz", symbol: "⸺" },
   diag1: { angle: 45, labelKey: "orientations.diag1", symbol: "╱" },
   vert: { angle: 90, labelKey: "orientations.vert", symbol: "┃" },

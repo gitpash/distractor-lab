@@ -40,14 +40,32 @@ export default {
 	},
 	actions: {
 		start: "Start",
+		skip: "Skip",
+		demo: "Show Orientations",
+		playAgain: "Play Again",
+		home: "Home",
 	},
 	orientations: {
 		horiz: "Horizontal",
 		diag1: "45°",
 		vert: "Vertical",
 		diag2: "135°",
+		left: "Left",
+		right: "Right",
 	},
 	game: {
 		trialCounter: "Trial {current}/{total}",
+		accuracy: "Accuracy",
+	},
+	results: {
+		title: "Training Complete!",
+		accuracy: "accuracy",
+		trials: "Trials",
+		difficulty: "Final difficulty",
+		time: "Time",
+	},
+	history: {
+		title: "Progress",
+		clear: "Clear history",
 	},
 };

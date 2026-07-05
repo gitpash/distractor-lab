@@ -4,18 +4,37 @@
     import { gameModes, MODES, type GameMode } from "$lib";
     import { t } from "svelte-i18n";
     import PixelIcon from "$lib/pixel-icons.svelte";
+    import KeyHints from "$lib/key-hints.svelte";
+    import { getHistory, clearHistory, sparklineSVG } from "$lib/game/history";
+    import type { HistoryEntry } from "$lib/game/types";
+    import { createWebHaptics } from "web-haptics/svelte";
+    import { onDestroy } from "svelte";
+
+    const haptics = createWebHaptics();
+    onDestroy(haptics.destroy);
 
     const selectedGameMode = $derived(
         ($page.url.searchParams.get("game-mode") || gameModes[0]) as GameMode,
     );
 
+    let trialCount = $state("50");
+    let history = $state<HistoryEntry[]>([]);
+
+    history = getHistory();
+
     const setGameMode = (value: GameMode) => {
+        haptics.trigger("nudge");
         const sp = new URLSearchParams($page.url.search);
         sp.set("game-mode", value);
         goto(`?${sp.toString()}`, { replaceState: true });
     };
 
     let focusedIndex = $state(-1);
+
+    function startGame() {
+        haptics.trigger("success");
+        goto(`/${selectedGameMode}?trials=${trialCount}`);
+    }
 
     function onKeydown(e: KeyboardEvent) {
         const modes = gameModes as readonly GameMode[];
@@ -33,8 +52,13 @@
             focusedIndex = prev;
         } else if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            goto(`/${selectedGameMode}${$page.url.search}`);
+            startGame();
         }
+    }
+
+    function handleClearHistory() {
+        clearHistory();
+        history = [];
     }
 </script>
 
@@ -68,28 +92,58 @@
     <div class="settings-row">
         <label>
             {$t("settings.trials")}
-            <select id="trialCount">
+            <select bind:value={trialCount}>
                 <option value="30">30</option>
-                <option value="50" selected>50</option>
+                <option value="50">50</option>
                 <option value="100">100</option>
             </select>
         </label>
     </div>
 
     <div class="start-actions">
-        <a class="btn btn-primary" href={selectedGameMode}>
+        <button class="btn btn-primary" onclick={startGame}>
             {$t("actions.start")}
+        </button>
+        <a class="btn-demo" href="/demo">
+            {$t("actions.demo")}
         </a>
     </div>
 
-    <div id="historySection"></div>
+    <KeyHints layout="nav" />
+
+    {#if history.length > 0}
+        <div class="history-section">
+            <div class="history-title">
+                {$t("history.title")} ({history.length})
+                {@html sparklineSVG(history.slice(0, 15).reverse().map(e => e.accuracy))}
+            </div>
+            <div class="history-list">
+                {#each history.slice(0, 15) as entry}
+                    <div class="history-row">
+                        <span class="history-date">{entry.date || "—"}</span>
+                        <span class="history-stats">
+                            <span class="history-mode">{entry.modeTitle || entry.mode}</span>
+                            {#if entry.accuracy !== undefined}
+                                <span>{entry.accuracy.toFixed(0)}%</span>
+                            {/if}
+                        </span>
+                    </div>
+                {/each}
+            </div>
+            <div class="history-clear">
+                <button class="btn-demo" onclick={handleClearHistory}>
+                    {$t("history.clear")}
+                </button>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
     #startScreen {
         max-width: 680px;
         width: 100%;
-        padding: 40px 20px;
+        padding: 40px 20px 80px;
         text-align: center;
         position: relative;
     }
@@ -267,5 +321,71 @@
         40% { transform: rotate(12deg); }
         60% { transform: rotate(-8deg); }
         80% { transform: rotate(4deg); }
+    }
+
+    /* History */
+    .history-section {
+        margin-top: 36px;
+        text-align: left;
+        max-width: 480px;
+        width: 100%;
+    }
+    .history-title {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .history-list {
+        max-height: 220px;
+        overflow-y: auto;
+        font-size: 12px;
+    }
+    .history-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 0;
+        border-bottom: 1px solid var(--bg-tertiary);
+        gap: 8px;
+    }
+    .history-row:last-child {
+        border-bottom: none;
+    }
+    .history-date {
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+    .history-stats {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    .history-mode {
+        background: var(--bg-tertiary);
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+    .history-clear {
+        text-align: center;
+        margin-top: 10px;
+    }
+    .btn-demo {
+        background: transparent;
+        color: var(--text-muted);
+        border: none;
+        font-size: 12px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .btn-demo:hover {
+        color: var(--text-secondary);
     }
 </style>
