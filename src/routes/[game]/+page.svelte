@@ -169,11 +169,8 @@
                 fixationOpacity = 0;
                 gs.phase = "stimulus";
                 renderCurrentTrial();
-                loopTimeout = setTimeout(() => {
-                    showBlankCanvas();
-                    gs.waitingForResponse = true;
-                    gs.phase = "waiting";
-                }, 200);
+                gs.waitingForResponse = true;
+                gs.phase = "waiting";
             }, 300);
         } else if (gs.phase === "feedback") {
             loopTimeout = setTimeout(() => {
