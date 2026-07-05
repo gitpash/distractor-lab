@@ -23,12 +23,34 @@
     import { onMount } from "svelte";
 
     let haptics: WebHaptics | null = null;
+    let hapticSupported = false;
+
     onMount(() => {
-        if (WebHaptics.isSupported) {
+        hapticSupported = WebHaptics.isSupported;
+        console.log("[haptics] isSupported:", hapticSupported);
+        console.log("[haptics] navigator.vibrate:", typeof navigator.vibrate);
+        if (hapticSupported) {
             haptics = new WebHaptics({ debug: true });
+            console.log("[haptics] initialized:", haptics);
+        } else {
+            console.log("[haptics] not supported on this device — using fallback");
         }
         return () => haptics?.destroy();
     });
+
+    function haptic(type: "success" | "error" | "nudge") {
+        if (haptics) {
+            haptics.trigger(type);
+        } else if (navigator.vibrate) {
+            // Fallback: direct Vibration API patterns
+            const patterns = {
+                success: [30, 50, 40],
+                error: [40, 40, 40, 40, 40, 40],
+                nudge: [80, 80, 50],
+            };
+            navigator.vibrate(patterns[type]);
+        }
+    }
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -36,7 +58,7 @@
     const gameMode = $derived($page.params.game as string);
     const isDemo = $derived(gameMode === "demo");
     const numTrials = $derived(
-        parseInt($page.url.searchParams.get("trials") || "50")
+        parseInt($page.url.searchParams.get("trials") || "50"),
     );
 
     let gs: ReturnType<typeof createGameState> = createGameState("classic", 50);
@@ -52,7 +74,7 @@
     let showFeedback = $state(false);
 
     const modeConfig = $derived(
-        gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null
+        gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null,
     );
 
     const demoOrients: OrientKey[] = ["horiz", "diag1", "vert", "diag2"];
@@ -62,10 +84,16 @@
 
     let loopTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    const isMobile = $derived(typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches);
+    const isMobile = $derived(
+        typeof window !== "undefined" &&
+            window.matchMedia("(max-width: 600px)").matches,
+    );
 
     function clearTimers() {
-        if (loopTimeout) { clearTimeout(loopTimeout); loopTimeout = null; }
+        if (loopTimeout) {
+            clearTimeout(loopTimeout);
+            loopTimeout = null;
+        }
     }
 
     function showBlankCanvas() {
@@ -85,10 +113,12 @@
         const is2afc = modeConfig.type === "2afc";
         for (let i = 0; i < gs.currentTrial.patches.length; i++) {
             const p = gs.currentTrial.patches[i];
-            const orient = p.orient !== undefined
-                ? ORIENTATIONS[p.orient as keyof typeof ORIENTATIONS].angle
-                : p.angle || 0;
-            const phase = p.phase !== undefined ? p.phase : Math.random() * Math.PI * 2;
+            const orient =
+                p.orient !== undefined
+                    ? ORIENTATIONS[p.orient as keyof typeof ORIENTATIONS].angle
+                    : p.angle || 0;
+            const phase =
+                p.phase !== undefined ? p.phase : Math.random() * Math.PI * 2;
             renderPatch(data, w, h, {
                 orientation: orient,
                 contrast: p.contrast ?? 0.8,
@@ -116,8 +146,13 @@
         }
         renderPatch(data, w, h, {
             orientation: ORIENTATIONS[orientKey].angle,
-            contrast: 0.8, spatialFreq: 0.04, sigma: 30, phase: 0,
-            cx: 150, cy: 150, radius: 100,
+            contrast: 0.8,
+            spatialFreq: 0.04,
+            sigma: 30,
+            phase: 0,
+            cx: 150,
+            cy: 150,
+            radius: 100,
         });
         ctx.putImageData(imageData, 0, 0);
     }
@@ -174,11 +209,11 @@
         if (gs.lastAnswerCorrect) {
             feedbackText = "✓";
             feedbackType = "correct";
-            haptics?.trigger("success");
+            haptic("success");
         } else {
             feedbackText = "✗ → " + getCorrectAnswerLabel(gs);
             feedbackType = "wrong";
-            haptics?.trigger("error");
+            haptic("error");
         }
         showFeedback = true;
         gameLoop();
@@ -186,7 +221,7 @@
 
     function handleSkip() {
         if (!gs.waitingForResponse || !gs.running) return;
-        haptics?.trigger("nudge");
+        haptic("nudge");
         skipTrial(gs);
         gameLoop();
     }
@@ -197,7 +232,8 @@
         const key = getKeyBinding(e, modeConfig.type as "4afc" | "2afc");
         if (!key) return;
         e.preventDefault();
-        if (key === "skip") handleSkip(); else handleAnswer(key);
+        if (key === "skip") handleSkip();
+        else handleAnswer(key);
     }
 
     function endTraining() {
@@ -209,7 +245,10 @@
         params.set("correct", String(gs.correct));
         params.set("total", String(gs.total));
         params.set("difficulty", String(gs.difficulty));
-        params.set("time", String(Math.round((Date.now() - gs.startTime) / 1000)));
+        params.set(
+            "time",
+            String(Math.round((Date.now() - gs.startTime) / 1000)),
+        );
         goto(`/results?${params.toString()}`);
     }
 
@@ -217,7 +256,12 @@
         if (!canvasEl) return;
         ctx = canvasEl.getContext("2d")!;
         showBlankCanvas();
-        if (isDemo) { demoLoop(); } else { nextTrial(gs); gameLoop(); }
+        if (isDemo) {
+            demoLoop();
+        } else {
+            nextTrial(gs);
+            gameLoop();
+        }
     });
 
     $effect(() => () => clearTimers());
@@ -229,7 +273,10 @@
     {#if isDemo}
         <div id="topBar">
             <div class="progress-track">
-                <div class="progress-fill" style="width: {(demoIndex / demoOrients.length) * 100}%"></div>
+                <div
+                    class="progress-fill"
+                    style="width: {(demoIndex / demoOrients.length) * 100}%"
+                ></div>
             </div>
             <div class="trial-counter">{demoIndex} / {demoOrients.length}</div>
         </div>
@@ -237,21 +284,33 @@
     {:else}
         <div id="topBar">
             <div class="progress-track">
-                <div class="progress-fill" style="width: {getProgress(gs)}%"></div>
+                <div
+                    class="progress-fill"
+                    style="width: {getProgress(gs)}%"
+                ></div>
             </div>
             <div class="trial-counter">{gs.trial} / {gs.numTrials}</div>
         </div>
         <div class="hud">
-            <span class="hud-stat">{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span>
+            <span class="hud-stat"
+                >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
+            >
             <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
         </div>
     {/if}
 
     <div id="canvasWrap">
-        <canvas bind:this={canvasEl} width={CANVAS_SIZE} height={CANVAS_SIZE} id="gaborCanvas"></canvas>
+        <canvas
+            bind:this={canvasEl}
+            width={CANVAS_SIZE}
+            height={CANVAS_SIZE}
+            id="gaborCanvas"
+        ></canvas>
         <div id="fixation" style="opacity: {fixationOpacity}"></div>
         {#if showFeedback}
-            <div id="feedbackLabel" class="show {feedbackType}">{feedbackText}</div>
+            <div id="feedbackLabel" class="show {feedbackType}">
+                {feedbackText}
+            </div>
         {/if}
         <CrtOverlay intensity={0.2} />
     </div>
@@ -259,19 +318,33 @@
     {#if !isDemo}
         {#if isMobile}
             <div class="answer-tiles">
-                {#each [
-                    { key: "horiz", keys: "A/D", label: $t("orientations.horiz"), angle: 0 },
-                    { key: "diag1", keys: "E", label: $t("orientations.diag1"), angle: 45 },
-                    { key: "vert", keys: "W/S", label: $t("orientations.vert"), angle: 90 },
-                    { key: "diag2", keys: "Q", label: $t("orientations.diag2"), angle: 135 },
-                ] as tile}
-                    <button class="answer-tile" onclick={() => handleAnswer(tile.key)}>
+                {#each [{ key: "horiz", keys: "A/D", label: $t("orientations.horiz"), angle: 0 }, { key: "diag1", keys: "E", label: $t("orientations.diag1"), angle: 45 }, { key: "vert", keys: "W/S", label: $t("orientations.vert"), angle: 90 }, { key: "diag2", keys: "Q", label: $t("orientations.diag2"), angle: 135 }] as tile}
+                    <button
+                        class="answer-tile"
+                        onclick={() => handleAnswer(tile.key)}
+                    >
                         <svg class="tile-icon" viewBox="0 0 40 40">
                             <line
-                                x1={20 + 16 * Math.cos((tile.angle - 90) * Math.PI / 180)}
-                                y1={20 + 16 * Math.sin((tile.angle - 90) * Math.PI / 180)}
-                                x2={20 - 16 * Math.cos((tile.angle - 90) * Math.PI / 180)}
-                                y2={20 - 16 * Math.sin((tile.angle - 90) * Math.PI / 180)}
+                                x1={20 +
+                                    16 *
+                                        Math.cos(
+                                            ((tile.angle - 90) * Math.PI) / 180,
+                                        )}
+                                y1={20 +
+                                    16 *
+                                        Math.sin(
+                                            ((tile.angle - 90) * Math.PI) / 180,
+                                        )}
+                                x2={20 -
+                                    16 *
+                                        Math.cos(
+                                            ((tile.angle - 90) * Math.PI) / 180,
+                                        )}
+                                y2={20 -
+                                    16 *
+                                        Math.sin(
+                                            ((tile.angle - 90) * Math.PI) / 180,
+                                        )}
                                 stroke="currentColor"
                                 stroke-width="4"
                                 stroke-linecap="round"
@@ -281,7 +354,9 @@
                         <span class="tile-keys">{tile.keys}</span>
                     </button>
                 {/each}
-                <button class="answer-tile skip" onclick={handleSkip}>{$t("actions.skip")}</button>
+                <button class="answer-tile skip" onclick={handleSkip}
+                    >{$t("actions.skip")}</button
+                >
             </div>
         {:else}
             <KeyHints layout="answers" />
@@ -290,34 +365,186 @@
 </div>
 
 <style>
-    .game-screen { width: 100%; max-width: 600px; padding: 0 16px; display: flex; flex-direction: column; align-items: center; }
-    #topBar { width: 100%; display: flex; align-items: center; gap: 12px; padding: 4px 0; }
-    .progress-track { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.2s; }
-    .trial-counter { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .hud { display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
-    .hud-stat b { color: var(--text-primary); }
-    .hud-diff { color: var(--accent); }
-    #canvasWrap { position: relative; width: min(80vw, 80vh, 400px); aspect-ratio: 1; background: #808080; display: flex; align-items: center; justify-content: center; margin: 8px 0; overflow: hidden; }
-    @media (max-width: 600px) {
-        #canvasWrap { width: min(85vw, 50vh, 300px); margin: 4px 0; }
-        .hud { gap: 12px; font-size: 11px; margin-bottom: 2px; }
-        #topBar { gap: 8px; padding: 4px 0; }
+    .game-screen {
+        width: 100%;
+        max-width: 600px;
+        padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
-    #gaborCanvas { width: 100%; height: 100%; image-rendering: pixelated; }
-    #fixation { position: absolute; width: 20px; height: 20px; pointer-events: none; transition: opacity 0.1s; z-index: 5; }
-    #fixation::before, #fixation::after { content: ""; position: absolute; background: #fff; }
-    #fixation::before { width: 2px; height: 16px; left: 9px; top: 2px; }
-    #fixation::after { width: 16px; height: 2px; left: 2px; top: 9px; }
-    #feedbackLabel { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; padding: 5px 14px; opacity: 0; pointer-events: none; z-index: 10; transition: opacity 0.15s; }
-    #feedbackLabel.show { opacity: 1; }
-    #feedbackLabel.correct { background: rgba(0, 255, 136, 0.9); color: #000; }
-    #feedbackLabel.wrong { background: rgba(255, 64, 96, 0.9); color: #fff; }
-    .answer-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; width: 100%; max-width: 400px; }
-    .answer-tile { background: var(--bg-secondary); border: 2px solid var(--border); color: var(--text-primary); padding: 12px 8px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: all 0.15s; min-height: 80px; justify-content: center; }
-    .answer-tile:active { transform: scale(0.95); border-color: var(--accent); background: rgba(0, 229, 255, 0.1); }
-    .answer-tile.skip { background: var(--bg-tertiary); color: var(--text-secondary); font-size: 12px; border-style: dashed; }
-    .tile-icon { width: 36px; height: 36px; color: var(--accent); flex-shrink: 0; }
-    .tile-label { font-size: 12px; color: var(--text-primary); font-weight: 600; }
-    .tile-keys { font-size: 9px; color: var(--text-muted); font-family: "SF Mono", "Menlo", monospace; background: var(--bg-tertiary); padding: 1px 6px; border-radius: 3px; }
+    #topBar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0;
+    }
+    .progress-track {
+        flex: 1;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 3px;
+        transition: width 0.2s;
+    }
+    .trial-counter {
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+    .hud {
+        display: flex;
+        gap: 20px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-variant-numeric: tabular-nums;
+        margin-bottom: 4px;
+    }
+    .hud-stat b {
+        color: var(--text-primary);
+    }
+    .hud-diff {
+        color: var(--accent);
+    }
+    #canvasWrap {
+        position: relative;
+        width: min(80vw, 80vh, 400px);
+        aspect-ratio: 1;
+        background: #808080;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 8px 0;
+        overflow: hidden;
+    }
+    @media (max-width: 600px) {
+        #canvasWrap {
+            width: min(85vw, 50vh, 300px);
+            margin: 4px 0;
+        }
+        .hud {
+            gap: 12px;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+        #topBar {
+            gap: 8px;
+            padding: 4px 0;
+        }
+    }
+    #gaborCanvas {
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+    }
+    #fixation {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        pointer-events: none;
+        transition: opacity 0.1s;
+        z-index: 5;
+    }
+    #fixation::before,
+    #fixation::after {
+        content: "";
+        position: absolute;
+        background: #fff;
+    }
+    #fixation::before {
+        width: 2px;
+        height: 16px;
+        left: 9px;
+        top: 2px;
+    }
+    #fixation::after {
+        width: 16px;
+        height: 2px;
+        left: 2px;
+        top: 9px;
+    }
+    #feedbackLabel {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 5px 14px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+        transition: opacity 0.15s;
+    }
+    #feedbackLabel.show {
+        opacity: 1;
+    }
+    #feedbackLabel.correct {
+        background: rgba(0, 255, 136, 0.9);
+        color: #000;
+    }
+    #feedbackLabel.wrong {
+        background: rgba(255, 64, 96, 0.9);
+        color: #fff;
+    }
+    .answer-tiles {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+        width: 100%;
+        max-width: 400px;
+    }
+    .answer-tile {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        padding: 12px 8px;
+        cursor: pointer;
+        font-family: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        transition: all 0.15s;
+        min-height: 80px;
+        justify-content: center;
+    }
+    .answer-tile:active {
+        transform: scale(0.95);
+        border-color: var(--accent);
+        background: rgba(0, 229, 255, 0.1);
+    }
+    .answer-tile.skip {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-size: 12px;
+        border-style: dashed;
+    }
+    .tile-icon {
+        width: 36px;
+        height: 36px;
+        color: var(--accent);
+        flex-shrink: 0;
+    }
+    .tile-label {
+        font-size: 12px;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    .tile-keys {
+        font-size: 9px;
+        color: var(--text-muted);
+        font-family: "SF Mono", "Menlo", monospace;
+        background: var(--bg-tertiary);
+        padding: 1px 6px;
+        border-radius: 3px;
+    }
 </style>

@@ -18,6 +18,19 @@
         return () => haptics?.destroy();
     });
 
+    function haptic(type: "success" | "error" | "nudge") {
+        if (haptics) {
+            haptics.trigger(type);
+        } else if (navigator.vibrate) {
+            const patterns = {
+                success: [30, 50, 40],
+                error: [40, 40, 40, 40, 40, 40],
+                nudge: [80, 80, 50],
+            };
+            navigator.vibrate(patterns[type]);
+        }
+    }
+
     const selectedGameMode = $derived(
         ($page.url.searchParams.get("game-mode") || gameModes[0]) as GameMode,
     );
@@ -28,7 +41,7 @@
     history = getHistory();
 
     const setGameMode = (value: GameMode) => {
-        haptics?.trigger("nudge");
+        haptic("nudge");
         const sp = new URLSearchParams($page.url.search);
         sp.set("game-mode", value);
         goto(`?${sp.toString()}`, { replaceState: true });
@@ -37,7 +50,7 @@
     let focusedIndex = $state(-1);
 
     function startGame() {
-        haptics?.trigger("success");
+        haptic("success");
         goto(`/${selectedGameMode}?trials=${trialCount}`);
     }
 
