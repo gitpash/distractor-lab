@@ -3,10 +3,10 @@
     import { goto } from "$app/navigation";
     import { gameModes, MODES, type GameMode } from "$lib";
     import { t } from "svelte-i18n";
+    import PixelIcon from "$lib/pixel-icons.svelte";
 
-    // Reactive game mode from the URL (works on server and client)
     const selectedGameMode = $derived(
-        $page.url.searchParams.get("game-mode") as GameMode,
+        ($page.url.searchParams.get("game-mode") || gameModes[0]) as GameMode,
     );
 
     const setGameMode = (value: GameMode) => {
@@ -34,7 +34,10 @@
                     modeData.wide && "wide",
                 ]}
             >
-                <span class="icon">{modeData.icon}</span>
+                {#if mode === selectedGameMode}
+                    <span class="pixel-star"></span>
+                {/if}
+                <PixelIcon name={mode} />
                 <h3 class="title">{$t(`modes.${mode}.title`)}</h3>
                 <p class="desc">{$t(`modes.${mode}.desc`)}</p>
             </button>
@@ -53,63 +56,185 @@
     </div>
 
     <div class="start-actions">
-        <a class="btn btn-primary" href="game"> {$t("actions.start")} </a>
-        <!-- <button class="btn btn-demo" on:click={demoOrientations}>
-            Показать ориентации
-        </button> -->
+        <a class="btn btn-primary" href={selectedGameMode}>
+            {$t("actions.start")}
+        </a>
     </div>
 
     <div id="historySection"></div>
 </div>
 
 <style>
+    #startScreen {
+        max-width: 680px;
+        width: 100%;
+        padding: 40px 20px;
+        text-align: center;
+        position: relative;
+    }
+    #startScreen h1 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 6px;
+        color: var(--accent);
+        text-shadow: 0 0 20px var(--accent-glow);
+    }
+    #startScreen .subtitle {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+        line-height: 1.5;
+    }
     .mode-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         margin-bottom: 24px;
-        @media (400px >= width) {
+    }
+    @media (400px >= width) {
+        .mode-grid {
             grid-template-columns: repeat(1, 1fr);
         }
     }
     .mode-card {
+        position: relative;
         background: var(--bg-secondary);
-        border: 2px solid var(--border);
-        border-radius: var(--radius);
+        border: 1px solid var(--border);
         padding: 16px 10px;
         cursor: pointer;
-        transition:
-            border-color 0.15s,
-            background 0.15s,
-            transform 0.1s;
         text-align: center;
+        transition: border-color 0.15s, box-shadow 0.15s;
     }
     .mode-card:hover {
-        background: var(--bg-tertiary);
-        border-color: var(--text-muted);
+        border-color: var(--accent);
+        box-shadow: 0 0 10px var(--accent-glow), inset 0 0 20px rgba(0, 229, 255, 0.05);
     }
     .mode-card.selected {
-        border-color: var(--accent);
-        background: rgba(88, 166, 255, 0.08);
+        border-color: transparent;
+        background: rgba(0, 229, 255, 0.08);
+        box-shadow: 0 0 15px var(--accent-glow);
     }
-    .mode-card:active {
-        transform: scale(0.97);
+    .mode-card.selected::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        padding: 2px;
+        border-radius: 0;
+        background: conic-gradient(
+            from var(--border-angle, 0deg),
+            var(--accent) 0%,
+            var(--bg-secondary) 8%,
+            var(--bg-secondary) 25%,
+            var(--accent) 30%,
+            var(--bg-secondary) 35%,
+            var(--bg-secondary) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        z-index: 0;
+        animation: borderSpin 3s linear infinite;
     }
-    .mode-card .icon {
-        font-size: 24px;
-        margin-bottom: 6px;
+    @property --border-angle {
+        syntax: '<angle>';
+        initial-value: 0deg;
+        inherits: false;
+    }
+    @keyframes borderSpin {
+        to { --border-angle: 360deg; }
     }
     .mode-card .title {
         font-size: 14px;
         font-weight: 600;
         margin-bottom: 2px;
+        position: relative;
+        z-index: 1;
     }
     .mode-card .desc {
         font-size: 11px;
         color: var(--text-secondary);
         line-height: 1.4;
+        position: relative;
+        z-index: 1;
     }
     .mode-card.wide {
         grid-column: span 2;
+    }
+    .pixel-star {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        width: 10px;
+        height: 10px;
+        z-index: 2;
+        image-rendering: pixelated;
+        background: var(--accent);
+        clip-path: polygon(
+            50% 0%,
+            62% 35%,
+            100% 35%,
+            68% 57%,
+            80% 91%,
+            50% 70%,
+            20% 91%,
+            32% 57%,
+            0% 35%,
+            38% 35%
+        );
+        filter: drop-shadow(0 0 3px var(--accent-glow));
+        animation: starPulse 2s ease-in-out infinite;
+    }
+    @keyframes starPulse {
+        0%, 100% { opacity: 0.8; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); }
+    }
+    .settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .settings-row label {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+    .settings-row select {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    .start-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn {
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        font-family: inherit;
+    }
+    .btn-primary {
+        background: var(--accent-dim);
+        color: #fff;
+        font-size: 14px;
+        padding: 12px 40px;
+        border: 1px solid var(--accent);
+        box-shadow: 0 0 10px var(--accent-glow);
+    }
+    .btn-primary:hover {
+        background: var(--accent);
+        color: var(--bg-primary);
+        box-shadow: 0 0 20px var(--accent-glow);
     }
 </style>
