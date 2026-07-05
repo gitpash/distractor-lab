@@ -1,2 +1,2 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/typography';
+@import "tailwindcss";
+@import "tailwindcss/preflight.css" layer(base);
