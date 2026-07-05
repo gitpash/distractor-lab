@@ -39,17 +39,35 @@
         </button>
     </div>
     <div class="dpad">
-        {#each directions as d}
-            <button
-                class="dpad-btn {d.pos}"
-                onclick={() => onAnswer(d.key)}
-                {@attach isIOS ? hapticTrigger : undefined}
-                aria-label={$t(d.labelKey)}
-            >
-                <OrientationIcon angle={d.angle} size={20} />
-            </button>
-        {/each}
+        <button
+            class="dpad-btn top"
+            onclick={() => onAnswer("horiz")}
+            {@attach isIOS ? hapticTrigger : undefined}
+        >
+            <OrientationIcon angle={0} size={18} />
+        </button>
+        <button
+            class="dpad-btn left"
+            onclick={() => onAnswer("diag2")}
+            {@attach isIOS ? hapticTrigger : undefined}
+        >
+            <OrientationIcon angle={135} size={18} />
+        </button>
         <div class="dpad-center"></div>
+        <button
+            class="dpad-btn right"
+            onclick={() => onAnswer("diag1")}
+            {@attach isIOS ? hapticTrigger : undefined}
+        >
+            <OrientationIcon angle={45} size={18} />
+        </button>
+        <button
+            class="dpad-btn bottom"
+            onclick={() => onAnswer("vert")}
+            {@attach isIOS ? hapticTrigger : undefined}
+        >
+            <OrientationIcon angle={90} size={18} />
+        </button>
     </div>
 </div>
 
@@ -99,12 +117,12 @@
         color: var(--accent);
     }
     .dpad {
-        position: relative;
-        width: 120px;
-        height: 120px;
+        display: grid;
+        grid-template-columns: 44px 16px 44px;
+        grid-template-rows: 44px 16px 44px;
+        gap: 4px;
     }
     .dpad-btn {
-        position: absolute;
         width: 44px;
         height: 44px;
         border-radius: 50%;
@@ -125,19 +143,19 @@
         border-color: var(--accent);
         box-shadow: 0 0 12px var(--accent-glow);
     }
-    .top { top: 0; left: 50%; transform: translateX(-50%); }
-    .bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
-    .left { left: 0; top: 50%; transform: translateY(-50%); }
-    .right { right: 0; top: 50%; transform: translateY(-50%); }
+    .top { grid-column: 2; grid-row: 1; }
+    .left { grid-column: 1; grid-row: 2; }
+    .right { grid-column: 3; grid-row: 2; }
+    .bottom { grid-column: 2; grid-row: 3; }
     .dpad-center {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         width: 16px;
         height: 16px;
         border-radius: 50%;
         background: var(--bg-tertiary);
         border: 1px solid var(--border);
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: center;
+        align-self: center;
     }
 </style>
