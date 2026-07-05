@@ -19,25 +19,15 @@
     import CrtOverlay from "$lib/crt-overlay.svelte";
     import KeyHints from "$lib/key-hints.svelte";
     import PixelIcon from "$lib/pixel-icons.svelte";
-    import { WebHaptics } from "web-haptics";
+    import { initHaptics, triggerHaptic, destroyHaptics, hapticTrigger, getPlatform } from "$lib/game/haptics";
     import { onMount } from "svelte";
 
-    let haptics: WebHaptics;
-
     onMount(() => {
-        haptics = new WebHaptics();
-        console.log("[haptics] WebHaptics created");
-        return () => haptics?.destroy();
+        initHaptics();
+        return () => destroyHaptics();
     });
 
-    function haptic(type: "success" | "error" | "nudge") {
-        if (!haptics) {
-            console.log("[haptics] not initialized yet");
-            return;
-        }
-        console.log("[haptics] triggering:", type);
-        haptics.trigger(type);
-    }
+    const isIOS = $derived(getPlatform() === "ios");
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -196,11 +186,11 @@
         if (gs.lastAnswerCorrect) {
             feedbackText = "✓";
             feedbackType = "correct";
-            haptic("success");
+            triggerHaptic("success");
         } else {
             feedbackText = "✗ → " + getCorrectAnswerLabel(gs);
             feedbackType = "wrong";
-            haptic("error");
+            triggerHaptic("error");
         }
         showFeedback = true;
         gameLoop();
@@ -208,7 +198,7 @@
 
     function handleSkip() {
         if (!gs.waitingForResponse || !gs.running) return;
-        haptic("nudge");
+        triggerHaptic("nudge");
         skipTrial(gs);
         gameLoop();
     }
@@ -309,6 +299,7 @@
                     <button
                         class="answer-tile"
                         onclick={() => handleAnswer(tile.key)}
+                        {@attach isIOS ? hapticTrigger : undefined}
                     >
                         <svg class="tile-icon" viewBox="0 0 40 40">
                             <line
