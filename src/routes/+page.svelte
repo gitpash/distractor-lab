@@ -7,11 +7,16 @@
     import KeyHints from "$lib/key-hints.svelte";
     import { getHistory, clearHistory, sparklineSVG } from "$lib/game/history";
     import type { HistoryEntry } from "$lib/game/types";
-    import { createWebHaptics } from "web-haptics/svelte";
-    import { onDestroy } from "svelte";
+    import { WebHaptics } from "web-haptics";
+    import { onMount } from "svelte";
 
-    const haptics = createWebHaptics();
-    onDestroy(haptics.destroy);
+    let haptics: WebHaptics | null = null;
+    onMount(() => {
+        if (WebHaptics.isSupported) {
+            haptics = new WebHaptics();
+        }
+        return () => haptics?.destroy();
+    });
 
     const selectedGameMode = $derived(
         ($page.url.searchParams.get("game-mode") || gameModes[0]) as GameMode,
@@ -23,7 +28,7 @@
     history = getHistory();
 
     const setGameMode = (value: GameMode) => {
-        haptics.trigger("nudge");
+        haptics?.trigger("nudge");
         const sp = new URLSearchParams($page.url.search);
         sp.set("game-mode", value);
         goto(`?${sp.toString()}`, { replaceState: true });
@@ -32,7 +37,7 @@
     let focusedIndex = $state(-1);
 
     function startGame() {
-        haptics.trigger("success");
+        haptics?.trigger("success");
         goto(`/${selectedGameMode}?trials=${trialCount}`);
     }
 

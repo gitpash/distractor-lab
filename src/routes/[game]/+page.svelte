@@ -19,11 +19,16 @@
     import CrtOverlay from "$lib/crt-overlay.svelte";
     import KeyHints from "$lib/key-hints.svelte";
     import PixelIcon from "$lib/pixel-icons.svelte";
-    import { createWebHaptics } from "web-haptics/svelte";
-    import { onDestroy } from "svelte";
+    import { WebHaptics } from "web-haptics";
+    import { onMount } from "svelte";
 
-    const haptics = createWebHaptics();
-    onDestroy(haptics.destroy);
+    let haptics: WebHaptics | null = null;
+    onMount(() => {
+        if (WebHaptics.isSupported) {
+            haptics = new WebHaptics({ debug: true });
+        }
+        return () => haptics?.destroy();
+    });
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
@@ -169,11 +174,11 @@
         if (gs.lastAnswerCorrect) {
             feedbackText = "✓";
             feedbackType = "correct";
-            haptics.trigger("success");
+            haptics?.trigger("success");
         } else {
             feedbackText = "✗ → " + getCorrectAnswerLabel(gs);
             feedbackType = "wrong";
-            haptics.trigger("error");
+            haptics?.trigger("error");
         }
         showFeedback = true;
         gameLoop();
@@ -181,7 +186,7 @@
 
     function handleSkip() {
         if (!gs.waitingForResponse || !gs.running) return;
-        haptics.trigger("nudge");
+        haptics?.trigger("nudge");
         skipTrial(gs);
         gameLoop();
     }
