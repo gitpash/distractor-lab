@@ -50,6 +50,7 @@
     let feedbackText = $state("");
     let feedbackType = $state("correct" as "correct" | "wrong");
     let showFeedback = $state(false);
+    let canRepeat = $state(true);
 
     const modeConfig = $derived(
         gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null,
@@ -151,10 +152,18 @@
         }, 400);
     }
 
+    function handleRepeat() {
+        if (!gs.waitingForResponse || !canRepeat) return;
+        canRepeat = false;
+        renderCurrentTrial();
+        triggerHaptic("nudge");
+    }
+
     function gameLoop() {
         if (!gs.running) return;
         if (gs.phase === "fixation") {
             fixationOpacity = 1;
+            canRepeat = true;
             showBlankCanvas();
             loopTimeout = setTimeout(() => {
                 fixationOpacity = 0;
@@ -295,7 +304,7 @@
 
     {#if !isDemo}
         {#if isMobile}
-            <AnswerTiles onAnswer={handleAnswer} onSkip={handleSkip} {isIOS} />
+            <AnswerTiles onAnswer={handleAnswer} onSkip={handleSkip} onRepeat={handleRepeat} {canRepeat} {isIOS} />
         {:else}
             <KeyHints layout="answers" />
         {/if}

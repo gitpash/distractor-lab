@@ -34,6 +34,7 @@
     };
 
     let focusedIndex = $state(-1);
+    const isMobile = $derived(typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches);
 
     function startGame() {
         triggerHaptic("success");
@@ -114,7 +115,9 @@
         </a>
     </div>
 
-    <KeyHints layout="nav" />
+    {#if !isMobile}
+        <KeyHints layout="nav" />
+    {/if}
 
     {#if history.length > 0}
         <div class="history-section">
@@ -148,43 +151,67 @@
     #startScreen {
         max-width: 680px;
         width: 100%;
-        padding: 40px 20px 80px;
+        padding: 20px 16px 60px;
         text-align: center;
         position: relative;
     }
+    @media (min-width: 601px) {
+        #startScreen {
+            padding: 40px 20px 80px;
+        }
+    }
     #startScreen h1 {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
         letter-spacing: -0.5px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         color: var(--accent);
         text-shadow: 0 0 20px var(--accent-glow);
     }
+    @media (min-width: 601px) {
+        #startScreen h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+    }
     #startScreen .subtitle {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-secondary);
-        margin-bottom: 32px;
-        line-height: 1.5;
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }
+    @media (min-width: 601px) {
+        #startScreen .subtitle {
+            font-size: 13px;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
     }
     .mode-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 24px;
+        gap: 8px;
+        margin-bottom: 16px;
     }
-    @media (400px >= width) {
+    @media (max-width: 600px) {
         .mode-grid {
-            grid-template-columns: repeat(1, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
         }
     }
     .mode-card {
         position: relative;
         background: var(--bg-secondary);
         border: 1px solid var(--border);
-        padding: 16px 10px;
+        padding: 12px 6px;
         cursor: pointer;
         text-align: center;
         transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    @media (min-width: 601px) {
+        .mode-card {
+            padding: 16px 10px;
+        }
     }
     .mode-card:hover {
         border-color: var(--accent);
