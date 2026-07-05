@@ -14,7 +14,31 @@
         sp.set("game-mode", value);
         goto(`?${sp.toString()}`, { replaceState: true });
     };
+
+    let focusedIndex = $state(-1);
+
+    function onKeydown(e: KeyboardEvent) {
+        const modes = gameModes as readonly GameMode[];
+        const currentIdx = modes.indexOf(selectedGameMode);
+
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+            e.preventDefault();
+            const next = (currentIdx + 1) % modes.length;
+            setGameMode(modes[next]);
+            focusedIndex = next;
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            const prev = (currentIdx - 1 + modes.length) % modes.length;
+            setGameMode(modes[prev]);
+            focusedIndex = prev;
+        } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            goto(`/${selectedGameMode}${$page.url.search}`);
+        }
+    }
 </script>
+
+<svelte:window on:keydown={onKeydown} />
 
 <div id="startScreen">
     <h1>{$t("app.title")}</h1>
@@ -34,10 +58,7 @@
                     modeData.wide && "wide",
                 ]}
             >
-                {#if mode === selectedGameMode}
-                    <span class="pixel-star"></span>
-                {/if}
-                <PixelIcon name={mode} />
+                <PixelIcon name={mode} active={mode === selectedGameMode} />
                 <h3 class="title">{$t(`modes.${mode}.title`)}</h3>
                 <p class="desc">{$t(`modes.${mode}.desc`)}</p>
             </button>
@@ -110,6 +131,10 @@
         border-color: var(--accent);
         box-shadow: 0 0 10px var(--accent-glow), inset 0 0 20px rgba(0, 229, 255, 0.05);
     }
+    .mode-card:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
     .mode-card.selected {
         border-color: transparent;
         background: rgba(0, 229, 255, 0.08);
@@ -162,34 +187,6 @@
     .mode-card.wide {
         grid-column: span 2;
     }
-    .pixel-star {
-        position: absolute;
-        top: 4px;
-        right: 6px;
-        width: 10px;
-        height: 10px;
-        z-index: 2;
-        image-rendering: pixelated;
-        background: var(--accent);
-        clip-path: polygon(
-            50% 0%,
-            62% 35%,
-            100% 35%,
-            68% 57%,
-            80% 91%,
-            50% 70%,
-            20% 91%,
-            32% 57%,
-            0% 35%,
-            38% 35%
-        );
-        filter: drop-shadow(0 0 3px var(--accent-glow));
-        animation: starPulse 2s ease-in-out infinite;
-    }
-    @keyframes starPulse {
-        0%, 100% { opacity: 0.8; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.1); }
-    }
     .settings-row {
         display: flex;
         align-items: center;
@@ -236,5 +233,39 @@
         background: var(--accent);
         color: var(--bg-primary);
         box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    /* ===== HOVER: unique quick animation per icon ===== */
+    :global(.mode-card:hover .icon-classic) { animation: hCoinFlip 0.5s ease-in-out; }
+    :global(.mode-card:hover .icon-frequency) { animation: hBreath 0.4s ease-in-out; }
+    :global(.mode-card:hover .icon-noise) { animation: hStatic 0.3s steps(3); }
+    :global(.mode-card:hover .icon-fine) { animation: hBlink 0.4s ease-in-out; }
+    :global(.mode-card:hover .icon-combo) { animation: hShake 0.4s ease-in-out; }
+
+    @keyframes hCoinFlip {
+        0% { transform: rotateY(0deg); }
+        50% { transform: rotateY(180deg) scale(0.85); }
+        100% { transform: rotateY(360deg); }
+    }
+    @keyframes hBreath {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(1.15); }
+    }
+    @keyframes hStatic {
+        0% { transform: translate(1px, -1px); }
+        33% { transform: translate(-1px, 1px); }
+        66% { transform: translate(1px, 0px); }
+        100% { transform: translate(0px, 0px); }
+    }
+    @keyframes hBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    @keyframes hShake {
+        0%, 100% { transform: rotate(0deg); }
+        20% { transform: rotate(-15deg); }
+        40% { transform: rotate(12deg); }
+        60% { transform: rotate(-8deg); }
+        80% { transform: rotate(4deg); }
     }
 </style>

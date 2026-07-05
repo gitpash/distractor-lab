@@ -1,11 +1,11 @@
 <script lang="ts">
     type IconName = "classic" | "frequency" | "noise" | "fine" | "combo";
-    let { name }: { name: IconName } = $props();
+    let { name, active = false }: { name: IconName; active?: boolean } = $props();
 </script>
 
 {#if name === "classic"}
     <!-- Gabor patch: concentric rings with center dot -->
-    <svg class="pixel-icon" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="pixel-icon icon-classic" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="icon-rings">
             <!-- outer ring -->
             <rect x="3" y="0" width="1" height="1" fill="currentColor"/>
@@ -71,7 +71,7 @@
 
 {:else if name === "frequency"}
     <!-- Vertical stripes that can wave -->
-    <svg class="pixel-icon" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="pixel-icon icon-frequency" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="icon-stripes">
             <!-- stripe 1 -->
             <rect x="1" y="0" width="1" height="12" fill="currentColor"/>
@@ -95,7 +95,7 @@
 
 {:else if name === "noise"}
     <!-- Static noise pattern -->
-    <svg class="pixel-icon" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="pixel-icon icon-noise" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="icon-static">
             <rect x="0" y="0" width="1" height="1" fill="currentColor"/>
             <rect x="2" y="0" width="1" height="1" fill="currentColor"/>
@@ -166,7 +166,7 @@
 
 {:else if name === "fine"}
     <!-- Two targets (2AFC) -->
-    <svg class="pixel-icon" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="pixel-icon icon-fine" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g class="icon-target-a">
             <!-- left target outer -->
             <rect x="0" y="2" width="1" height="1" fill="currentColor"/>
@@ -228,40 +228,20 @@
     </svg>
 
 {:else if name === "combo"}
-    <!-- Circle with cross / starburst -->
-    <svg class="pixel-icon" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g class="icon-circle">
-            <!-- outer circle -->
-            <rect x="4" y="0" width="4" height="1" fill="currentColor"/>
-            <rect x="2" y="1" width="2" height="1" fill="currentColor"/>
-            <rect x="8" y="1" width="2" height="1" fill="currentColor"/>
-            <rect x="1" y="2" width="1" height="1" fill="currentColor"/>
-            <rect x="10" y="2" width="1" height="1" fill="currentColor"/>
-            <rect x="0" y="3" width="1" height="1" fill="currentColor"/>
-            <rect x="11" y="3" width="1" height="1" fill="currentColor"/>
-            <rect x="0" y="4" width="1" height="1" fill="currentColor"/>
-            <rect x="11" y="4" width="1" height="1" fill="currentColor"/>
-            <rect x="0" y="7" width="1" height="1" fill="currentColor"/>
-            <rect x="11" y="7" width="1" height="1" fill="currentColor"/>
-            <rect x="0" y="8" width="1" height="1" fill="currentColor"/>
-            <rect x="11" y="8" width="1" height="1" fill="currentColor"/>
-            <rect x="1" y="9" width="1" height="1" fill="currentColor"/>
-            <rect x="10" y="9" width="1" height="1" fill="currentColor"/>
-            <rect x="2" y="10" width="2" height="1" fill="currentColor"/>
-            <rect x="8" y="10" width="2" height="1" fill="currentColor"/>
-            <rect x="4" y="11" width="4" height="1" fill="currentColor"/>
-        </g>
-        <g class="icon-cross">
-            <!-- cross / plus -->
-            <rect x="5" y="2" width="2" height="1" fill="currentColor"/>
-            <rect x="5" y="3" width="2" height="1" fill="currentColor"/>
-            <rect x="5" y="4" width="2" height="1" fill="currentColor"/>
+    <!-- Dice — classic random symbol -->
+    <svg class="pixel-icon icon-combo" class:active viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g class="icon-dice">
+            <!-- outer border -->
+            <rect x="1" y="0" width="10" height="1" fill="currentColor"/>
+            <rect x="0" y="1" width="1" height="10" fill="currentColor"/>
+            <rect x="11" y="1" width="1" height="10" fill="currentColor"/>
+            <rect x="1" y="11" width="10" height="1" fill="currentColor"/>
+            <!-- face: 5 dots (quincunx) -->
+            <rect x="3" y="3" width="1" height="1" fill="currentColor"/>
+            <rect x="8" y="3" width="1" height="1" fill="currentColor"/>
             <rect x="5" y="5" width="2" height="2" fill="currentColor"/>
-            <rect x="5" y="7" width="2" height="1" fill="currentColor"/>
-            <rect x="5" y="8" width="2" height="1" fill="currentColor"/>
-            <rect x="5" y="9" width="2" height="1" fill="currentColor"/>
-            <rect x="2" y="5" width="3" height="2" fill="currentColor"/>
-            <rect x="7" y="5" width="3" height="2" fill="currentColor"/>
+            <rect x="3" y="8" width="1" height="1" fill="currentColor"/>
+            <rect x="8" y="8" width="1" height="1" fill="currentColor"/>
         </g>
     </svg>
 {/if}
@@ -274,5 +254,51 @@
         margin: 0 auto 10px;
         color: var(--accent);
         image-rendering: pixelated;
+        transition: transform 0.2s;
+    }
+
+    /* ===== ACTIVE: slow continuous loop per mode ===== */
+    .icon-classic.active {
+        animation: activeCoinSpin 4s linear infinite;
+        transform-style: preserve-3d;
+    }
+    .icon-frequency.active {
+        animation: activeStripeBreath 2.5s ease-in-out infinite;
+    }
+    .icon-noise.active {
+        animation: activeNoiseShimmer 2s steps(4) infinite;
+    }
+    .icon-fine.active {
+        animation: activeTargetBlink 2.5s ease-in-out infinite;
+    }
+    .icon-combo.active {
+        animation: activeDiceRoll 1.5s ease-in-out infinite;
+    }
+
+    @keyframes activeCoinSpin {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
+    }
+    @keyframes activeStripeBreath {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(1.25); }
+    }
+    @keyframes activeNoiseShimmer {
+        0% { transform: translate(0, 0); filter: brightness(1); }
+        25% { transform: translate(0.5px, -0.5px); filter: brightness(1.2); }
+        50% { transform: translate(-0.5px, 0.5px); filter: brightness(0.9); }
+        75% { transform: translate(0.5px, 0.5px); filter: brightness(1.1); }
+        100% { transform: translate(0, 0); filter: brightness(1); }
+    }
+    @keyframes activeTargetBlink {
+        0%, 45%, 55%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    @keyframes activeDiceRoll {
+        0%, 100% { transform: rotate(0deg) translateY(0); }
+        20% { transform: rotate(-8deg) translateY(-2px); }
+        40% { transform: rotate(6deg) translateY(0); }
+        60% { transform: rotate(-4deg) translateY(-1px); }
+        80% { transform: rotate(2deg) translateY(0); }
     }
 </style>
