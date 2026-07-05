@@ -332,7 +332,7 @@
                         <span class="tile-keys">{tile.keys}</span>
                     </button>
                 {/each}
-                <button class="answer-tile skip" onclick={handleSkip}
+                <button class="answer-tile skip" onclick={handleSkip} {@attach isIOS ? hapticTrigger : undefined}
                     >{$t("actions.skip")}</button
                 >
             </div>

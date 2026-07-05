@@ -80,6 +80,7 @@
             <button
                 value={mode}
                 onclick={() => setGameMode(mode)}
+                {@attach isIOS ? hapticTrigger : undefined}
                 class={[
                     "mode-card",
                     mode === selectedGameMode && "selected",
@@ -105,7 +106,7 @@
     </div>
 
     <div class="start-actions">
-        <button class="btn btn-primary" onclick={startGame}>
+        <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
             {$t("actions.start")}
         </button>
         <a class="btn-demo" href="/demo">
