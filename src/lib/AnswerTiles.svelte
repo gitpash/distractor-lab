@@ -12,11 +12,11 @@
     };
     let { onAnswer, onSkip, onRepeat, canRepeat, isIOS }: Props = $props();
 
-    const tiles = [
-        { key: "horiz", angle: 0, labelKey: "orientations.horiz" },
-        { key: "diag1", angle: 45, labelKey: "orientations.diag1" },
-        { key: "vert", angle: 90, labelKey: "orientations.vert" },
-        { key: "diag2", angle: 135, labelKey: "orientations.diag2" },
+    const directions = [
+        { key: "horiz", angle: 0, pos: "top", labelKey: "orientations.horiz" },
+        { key: "diag2", angle: 135, pos: "left", labelKey: "orientations.diag2" },
+        { key: "diag1", angle: 45, pos: "right", labelKey: "orientations.diag1" },
+        { key: "vert", angle: 90, pos: "bottom", labelKey: "orientations.vert" },
     ];
 </script>
 
@@ -39,34 +39,17 @@
         </button>
     </div>
     <div class="dpad">
-        <button
-            class="dpad-btn top"
-            onclick={() => onAnswer("diag1")}
-            {@attach isIOS ? hapticTrigger : undefined}
-        >
-            <OrientationIcon angle={45} size={24} />
-        </button>
-        <button
-            class="dpad-btn left"
-            onclick={() => onAnswer("horiz")}
-            {@attach isIOS ? hapticTrigger : undefined}
-        >
-            <OrientationIcon angle={0} size={24} />
-        </button>
-        <button
-            class="dpad-btn right"
-            onclick={() => onAnswer("vert")}
-            {@attach isIOS ? hapticTrigger : undefined}
-        >
-            <OrientationIcon angle={90} size={24} />
-        </button>
-        <button
-            class="dpad-btn bottom"
-            onclick={() => onAnswer("diag2")}
-            {@attach isIOS ? hapticTrigger : undefined}
-        >
-            <OrientationIcon angle={135} size={24} />
-        </button>
+        {#each directions as d}
+            <button
+                class="dpad-btn {d.pos}"
+                onclick={() => onAnswer(d.key)}
+                {@attach isIOS ? hapticTrigger : undefined}
+                aria-label={$t(d.labelKey)}
+            >
+                <OrientationIcon angle={d.angle} size={20} />
+            </button>
+        {/each}
+        <div class="dpad-center"></div>
     </div>
 </div>
 
@@ -75,7 +58,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
+        gap: 16px;
         margin-top: 8px;
         padding-bottom: env(safe-area-inset-bottom, 0);
     }
@@ -87,6 +70,7 @@
     .side-btn {
         width: 44px;
         height: 44px;
+        border-radius: 50%;
         background: var(--bg-secondary);
         border: 2px solid var(--border);
         color: var(--text-secondary);
@@ -115,12 +99,15 @@
         color: var(--accent);
     }
     .dpad {
-        display: grid;
-        grid-template-columns: repeat(2, 50px);
-        grid-template-rows: repeat(2, 50px);
-        gap: 4px;
+        position: relative;
+        width: 120px;
+        height: 120px;
     }
     .dpad-btn {
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
         background: var(--bg-secondary);
         border: 2px solid var(--border);
         color: var(--accent);
@@ -134,11 +121,23 @@
     }
     .dpad-btn:active {
         transform: scale(0.9);
-        background: rgba(0, 229, 255, 0.15);
+        background: rgba(0, 229, 255, 0.2);
         border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
     }
-    .top { grid-column: 1; grid-row: 1; }
-    .left { grid-column: 1; grid-row: 2; }
-    .right { grid-column: 2; grid-row: 1; }
-    .bottom { grid-column: 2; grid-row: 2; }
+    .top { top: 0; left: 50%; transform: translateX(-50%); }
+    .bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+    .left { left: 0; top: 50%; transform: translateY(-50%); }
+    .right { right: 0; top: 50%; transform: translateY(-50%); }
+    .dpad-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+    }
 </style>
