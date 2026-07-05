@@ -9,3 +9,11 @@ declare module "web-haptics" {
 		static isSupported: boolean;
 	}
 }
+
+declare module "web-haptics/svelte" {
+	export function createWebHaptics(options?: { debug?: boolean; showSwitch?: boolean }): {
+		trigger: (input?: string | number | number[] | { duration: number; intensity?: number; delay?: number }[]) => Promise<void>;
+		cancel: () => void;
+		destroy: () => void;
+	};
+}

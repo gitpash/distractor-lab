@@ -22,17 +22,21 @@
     import { WebHaptics } from "web-haptics";
     import { onMount } from "svelte";
 
-    let haptics: WebHaptics | null = null;
+    let haptics: WebHaptics;
 
     onMount(() => {
-        // Always initialize — library handles iOS Safari via <input type="checkbox" switch> hack
-        haptics = new WebHaptics({ debug: true });
-        console.log("[haptics] initialized, isSupported:", WebHaptics.isSupported);
+        haptics = new WebHaptics();
+        console.log("[haptics] WebHaptics created");
         return () => haptics?.destroy();
     });
 
     function haptic(type: "success" | "error" | "nudge") {
-        haptics?.trigger(type);
+        if (!haptics) {
+            console.log("[haptics] not initialized yet");
+            return;
+        }
+        console.log("[haptics] triggering:", type);
+        haptics.trigger(type);
     }
 
     let canvasEl: HTMLCanvasElement;

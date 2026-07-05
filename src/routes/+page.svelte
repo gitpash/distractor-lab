@@ -10,14 +10,16 @@
     import { WebHaptics } from "web-haptics";
     import { onMount } from "svelte";
 
-    let haptics: WebHaptics | null = null;
+    let haptics: WebHaptics;
+
     onMount(() => {
         haptics = new WebHaptics();
         return () => haptics?.destroy();
     });
 
     function haptic(type: "success" | "error" | "nudge") {
-        haptics?.trigger(type);
+        if (!haptics) return;
+        haptics.trigger(type);
     }
 
     const selectedGameMode = $derived(
