@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 
-// Button-to-key mapping from AnswerTiles
+// Button-to-key mapping from AnswerTiles (corrected)
 const BUTTON_MAP = [
     { pos: "top", key: "horiz", angle: 0 },
-    { pos: "left", key: "diag2", angle: 135 },
-    { pos: "right", key: "diag1", angle: 45 },
+    { pos: "left", key: "diag1", angle: 45 },
+    { pos: "right", key: "diag2", angle: 135 },
     { pos: "bottom", key: "vert", angle: 90 },
 ];
 
@@ -29,16 +29,16 @@ describe('AnswerTiles button mapping', () => {
         expect(btn?.angle).toBe(ORIENTATIONS.vert.angle);
     });
 
-    it('left button = diagonal 135° (╲)', () => {
+    it('left button = diagonal 45° (╲)', () => {
         const btn = BUTTON_MAP.find(b => b.pos === "left");
-        expect(btn?.key).toBe("diag2");
-        expect(btn?.angle).toBe(ORIENTATIONS.diag2.angle);
-    });
-
-    it('right button = diagonal 45° (╱)', () => {
-        const btn = BUTTON_MAP.find(b => b.pos === "right");
         expect(btn?.key).toBe("diag1");
         expect(btn?.angle).toBe(ORIENTATIONS.diag1.angle);
+    });
+
+    it('right button = diagonal 135° (╱)', () => {
+        const btn = BUTTON_MAP.find(b => b.pos === "right");
+        expect(btn?.key).toBe("diag2");
+        expect(btn?.angle).toBe(ORIENTATIONS.diag2.angle);
     });
 
     it('all 4 buttons map to unique keys', () => {

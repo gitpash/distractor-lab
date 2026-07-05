@@ -36,12 +36,12 @@
             <span></span>
         </div>
         <div class="row">
-            <button class="btn" onclick={() => onAnswer("diag2")} {@attach isIOS ? hapticTrigger : undefined}>
-                <OrientationIcon angle={135} size={18} />
-            </button>
-            <div class="center"></div>
             <button class="btn" onclick={() => onAnswer("diag1")} {@attach isIOS ? hapticTrigger : undefined}>
                 <OrientationIcon angle={45} size={18} />
+            </button>
+            <div class="center"></div>
+            <button class="btn" onclick={() => onAnswer("diag2")} {@attach isIOS ? hapticTrigger : undefined}>
+                <OrientationIcon angle={135} size={18} />
             </button>
         </div>
         <div class="row">
