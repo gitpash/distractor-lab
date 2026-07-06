@@ -56,6 +56,7 @@
     let feedbackType = $state("correct" as "correct" | "wrong");
     let showFeedback = $state(false);
     let canRepeat = $state(true);
+    let activeKey = $state("");
 
     const modeConfig = $derived(
         gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null,
@@ -221,6 +222,8 @@
         const key = getKeyBinding(e, modeConfig.type as "4afc" | "2afc");
         if (!key) return;
         e.preventDefault();
+        activeKey = key === "skip" ? "" : key;
+        setTimeout(() => { activeKey = ""; }, 300);
         if (key === "skip") handleSkip();
         else handleAnswer(key);
     }
@@ -298,7 +301,7 @@
                 {isIOS}
             />
         {:else}
-            <KeyHints layout="answers" />
+            <KeyHints layout="answers" onKey={handleAnswer} {activeKey} />
         {/if}
     {/if}
 </div>
