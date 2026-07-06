@@ -6,7 +6,9 @@
     };
     let { angle, size = 40, class: className = "" }: Props = $props();
 
-    const rad = $derived(angle * Math.PI / 180);
+    // Negate angle because SVG y-axis is inverted (y increases downward)
+    // but stripe direction is calculated with y increasing upward
+    const rad = $derived(-angle * Math.PI / 180);
     const cx = $derived(size / 2);
     const cy = $derived(size / 2);
     const r = $derived(size * 0.4);
