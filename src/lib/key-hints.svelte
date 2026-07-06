@@ -30,7 +30,9 @@
             {#if i > 0}<div class="key-divider"></div>{/if}
             <div class="key-group">
                 <span class="key-pair">
-                    <kbd>{@html k.arrow}</kbd><kbd class="letter">{k.letters}</kbd>
+                    <kbd>{@html k.arrow}</kbd><kbd class="letter"
+                        >{k.letters}</kbd
+                    >
                 </span>
                 <span class="key-label">{@html k.label}</span>
             </div>

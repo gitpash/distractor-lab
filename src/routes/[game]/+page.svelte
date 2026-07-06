@@ -20,7 +20,12 @@
     import KeyHints from "$lib/key-hints.svelte";
     import PixelIcon from "$lib/pixel-icons.svelte";
     import AnswerTiles from "$lib/AnswerTiles.svelte";
-    import { initHaptics, triggerHaptic, destroyHaptics, getPlatform } from "$lib/game/haptics";
+    import {
+        initHaptics,
+        triggerHaptic,
+        destroyHaptics,
+        getPlatform,
+    } from "$lib/game/haptics";
     import { onMount } from "svelte";
 
     onMount(() => {
@@ -254,34 +259,18 @@
 <svelte:window on:keydown={onKeydown} />
 
 <div class="game-screen">
-    {#if isDemo}
-        <div id="topBar">
-            <div class="progress-track">
-                <div
-                    class="progress-fill"
-                    style="width: {(demoIndex / demoOrients.length) * 100}%"
-                ></div>
-            </div>
-            <div class="trial-counter">{demoIndex} / {demoOrients.length}</div>
+    <div id="topBar">
+        <div class="progress-track">
+            <div class="progress-fill" style="width: {getProgress(gs)}%"></div>
         </div>
-        <div class="hud"><span class="hud-stat">{demoLabel}</span></div>
-    {:else}
-        <div id="topBar">
-            <div class="progress-track">
-                <div
-                    class="progress-fill"
-                    style="width: {getProgress(gs)}%"
-                ></div>
-            </div>
-            <div class="trial-counter">{gs.trial} / {gs.numTrials}</div>
-        </div>
-        <div class="hud">
-            <span class="hud-stat"
-                >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
-            >
-            <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
-        </div>
-    {/if}
+        <div class="trial-counter">{gs.trial} / {gs.numTrials}</div>
+    </div>
+    <div class="hud">
+        <span class="hud-stat"
+            >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
+        >
+        <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
+    </div>
 
     <div id="canvasWrap">
         <canvas
@@ -301,7 +290,13 @@
 
     {#if !isDemo}
         {#if isMobile}
-            <AnswerTiles onAnswer={handleAnswer} onSkip={handleSkip} onRepeat={handleRepeat} {canRepeat} {isIOS} />
+            <AnswerTiles
+                onAnswer={handleAnswer}
+                onSkip={handleSkip}
+                onRepeat={handleRepeat}
+                {canRepeat}
+                {isIOS}
+            />
         {:else}
             <KeyHints layout="answers" />
         {/if}
