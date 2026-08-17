@@ -1,7 +1,7 @@
 // ── Calibration Phase ────────────────────────────────────────────────
 // Maps individual cortical deficiencies before training begins.
 // Tests contrast threshold at multiple spatial frequencies and orientations.
-// Based on: Polat U (2009) Vision Research, RevitalVision clinical protocol.
+// Based on: Polat U (2009) Vision Research, clinical perceptual learning protocols.
 
 import { ORIENTATIONS } from '$lib';
 import { renderPatch } from './renderer';

@@ -1,6 +1,6 @@
 // ── Session Protocol ─────────────────────────────────────────────────
 // Manages 30-minute training sessions with structured phases.
-// Based on: RevitalVision clinical protocol (30 min, 3-4x/week, 2-4 months).
+// Based on: clinical perceptual learning protocols (30 min, 3-4x/week, 2-4 months).
 
 import type { OrientKey } from './types';
 
