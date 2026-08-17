@@ -147,16 +147,27 @@
         goto("/results?mode=calibration");
     }
 
+    let loopStarted = false;
+
     function startCalibration() {
         cs = createCalibrationState();
         cs.phase = "running";
-        calibrationLoop();
+        loopStarted = false;
+        // Loop will start from $effect once canvas is ready
     }
 
     $effect(() => {
         if (!canvasEl) return;
         ctx = canvasEl.getContext("2d")!;
         showBlankCanvas();
+    });
+
+    // Start calibration loop when phase changes to "running" and canvas is ready
+    $effect(() => {
+        if (cs.phase === "running" && ctx && !loopStarted) {
+            loopStarted = true;
+            calibrationLoop();
+        }
     });
 
     $effect(() => () => clearTimers());

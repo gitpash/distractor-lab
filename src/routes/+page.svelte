@@ -110,7 +110,7 @@
         <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
             {$t("actions.start")}
         </button>
-        <a class="btn-demo" href="/calibration">
+        <a class="btn btn-secondary" href="/calibration">
             {$t("calibration.title")}
         </a>
         <a class="btn-demo" href="/demo">
@@ -322,6 +322,19 @@
         background: var(--accent);
         color: var(--bg-primary);
         box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 13px;
+        padding: 10px 32px;
+        border: 1px solid var(--border);
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-secondary:hover {
+        border-color: var(--accent);
+        color: var(--accent);
     }
 
     /* History */
