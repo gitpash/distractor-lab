@@ -74,4 +74,14 @@ export default {
 		title: "Progress",
 		clear: "Clear history",
 	},
+	calibration: {
+		title: "Calibration",
+		description: "We'll measure your contrast sensitivity at different spatial frequencies. This helps personalize your training.",
+		frequencies: "Spatial frequencies",
+		orientations: "Orientations",
+		total: "Total",
+		trials: "trials",
+		point: "Point",
+		threshold: "Threshold",
+	},
 };

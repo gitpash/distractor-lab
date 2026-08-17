@@ -110,6 +110,9 @@
         <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
             {$t("actions.start")}
         </button>
+        <a class="btn-demo" href="/calibration">
+            {$t("calibration.title")}
+        </a>
         <a class="btn-demo" href="/demo">
             {$t("actions.demo")}
         </a>

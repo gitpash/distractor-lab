@@ -2,7 +2,7 @@
 
 ## Status
 
-Partially Implemented (Phases 1-3 complete)
+Implemented (Phases 1-5 complete)
 
 ## Context
 
@@ -109,11 +109,11 @@ The current trainer renders isolated Gabor patches and adapts difficulty via a w
 - ✅ Contrast, frequency, noise, combo, lateral modes
 - ✅ Lateral masking (collinear flankers)
 - ✅ Stimulus timing control (80–320ms adaptive exposure, 500ms ISI)
+- ✅ Calibration/assessment phase
+- ✅ Spatial frequency progression protocol
+- ✅ Session duration structure (30 min)
 
 ### What's missing
-- ❌ Calibration/assessment phase
-- ❌ Spatial frequency progression protocol
-- ❌ Session duration structure (30 min)
 - ❌ QUEST algorithm (optional, more sophisticated)
 
 ## Implementation Plan
@@ -161,7 +161,7 @@ Add timing control:
 - Blank interval: 500ms (ISI between displays in 2AFC)
 - Feedback: 700ms (already exists)
 
-### Phase 4: Calibration Phase
+### Phase 4: Calibration Phase ✅
 
 **New file:** `src/lib/game/calibration.ts`
 
@@ -171,9 +171,9 @@ Initial assessment (2 sessions):
 3. Build individual CSF profile
 4. Identify weakest frequencies/orientations for targeted training
 
-### Phase 5: Session Protocol
+### Phase 5: Session Protocol ✅
 
-**New file:** `src/lib/game/protocol.ts`
+**New file:** `src/lib/game/session.ts`
 
 Define structured sessions:
 - Duration: 30 minutes (timer-based, not trial-count-based)

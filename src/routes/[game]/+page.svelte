@@ -16,6 +16,16 @@
         getCorrectAnswerLabel,
         updateStimulusDuration,
     } from "$lib/game/state";
+    import {
+        createSessionState,
+        updateSessionTimer,
+        shouldAdvancePhase,
+        advanceSessionPhase,
+        getProgressPercent,
+        formatTime,
+        getSessionSummary,
+        type SessionState,
+    } from "$lib/game/session";
     import { getKeyBinding } from "$lib/game/keyboard";
     import CrtOverlay from "$lib/crt-overlay.svelte";
     import KeyHints from "$lib/key-hints.svelte";
@@ -41,16 +51,25 @@
 
     const gameMode = $derived($page.params.game as string);
     const isDemo = $derived(gameMode === "demo");
+    const isSession = $derived($page.url.searchParams.get("session") === "true");
     const numTrials = $derived(
         parseInt($page.url.searchParams.get("trials") || "50"),
     );
 
     let gs: ReturnType<typeof createGameState> = createGameState("classic", 50);
+    let session: SessionState | null = $state(null);
+    let sessionDisplay = $state("");
+    let sessionPhaseDisplay = $state("");
 
     $effect(() => {
         gs = isDemo
             ? createGameState("classic", 4)
             : createGameState(gameMode, numTrials);
+        if (isSession && !isDemo) {
+            session = createSessionState();
+        } else {
+            session = null;
+        }
     });
 
     let feedbackText = $state("");
@@ -184,6 +203,27 @@
 
     function gameLoop() {
         if (!gs.running) return;
+
+        // Update session timer if in session mode
+        if (session && session.running) {
+            updateSessionTimer(session);
+            sessionDisplay = formatTime(session.elapsed);
+            sessionPhaseDisplay = session.phase;
+
+            // Check if session time is up
+            if (session.elapsed >= 30 * 60 * 1000) {
+                session.phase = 'complete';
+                session.running = false;
+                endTraining();
+                return;
+            }
+
+            // Check if we should advance phase
+            if (shouldAdvancePhase(session)) {
+                advanceSessionPhase(session);
+            }
+        }
+
         if (gs.phase === "fixation") {
             fixationOpacity = 1;
             canRepeat = true;
@@ -300,6 +340,10 @@
             >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
         >
         <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
+        {#if session && session.running}
+            <span class="hud-session">{sessionDisplay}</span>
+            <span class="hud-phase">{sessionPhaseDisplay}</span>
+        {/if}
     </div>
 
     <div id="canvasWrap">
@@ -381,6 +425,15 @@
     }
     .hud-diff {
         color: var(--accent);
+    }
+    .hud-session {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    .hud-phase {
+        color: var(--text-muted);
+        font-size: 11px;
+        text-transform: capitalize;
     }
     #canvasWrap {
         position: relative;
