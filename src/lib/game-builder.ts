@@ -152,7 +152,7 @@ export const MODES = {
     title: "Combo",
     subtitle: "Mix",
     icon: "⊕",
-    wide: true,
+    wide: false,
     desc: "Random stimulus",
     type: "4afc",
     diffLabel: "Contrast",

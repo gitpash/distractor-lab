@@ -107,12 +107,14 @@
     </div>
 
     <div class="start-actions">
-        <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
-            {$t("actions.start")}
-        </button>
-        <a class="btn btn-secondary" href="/calibration">
-            {$t("calibration.title")}
-        </a>
+        <div class="action-row">
+            <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
+                {$t("actions.start")}
+            </button>
+            <a class="btn btn-secondary" href="/calibration">
+                {$t("calibration.title")}
+            </a>
+        </div>
         <a class="btn-demo" href="/demo">
             {$t("actions.demo")}
         </a>
@@ -301,6 +303,11 @@
         flex-direction: column;
         align-items: center;
         gap: 4px;
+    }
+    .action-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
     }
     .btn {
         border: none;
