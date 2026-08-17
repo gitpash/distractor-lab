@@ -34,6 +34,12 @@ export default {
 			desc: "Случайный стимул",
 			diffLabel: "Контраст",
 		},
+		lateral: {
+			title: "Латеральный",
+			subtitle: "Маскировка",
+			desc: "Коллинеарные флэнкеры",
+			diffLabel: "Контраст цели",
+		},
 	},
 	settings: {
 		trials: "Испытаний:",

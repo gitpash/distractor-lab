@@ -4,7 +4,7 @@
     import { t } from "svelte-i18n";
     import { ORIENTATIONS, MODES } from "$lib";
     import type { OrientKey } from "$lib/game/types";
-    import { CANVAS_SIZE, renderPatch, showBlank } from "$lib/game/renderer";
+    import { CANVAS_SIZE, renderPatch, renderLateralMasking, showBlank } from "$lib/game/renderer";
     import {
         createGameState,
         nextTrial,
@@ -14,6 +14,7 @@
         getDifficultyDisplay,
         getProgress,
         getCorrectAnswerLabel,
+        updateStimulusDuration,
     } from "$lib/game/state";
     import { getKeyBinding } from "$lib/game/keyboard";
     import CrtOverlay from "$lib/crt-overlay.svelte";
@@ -104,17 +105,33 @@
                     : p.angle || 0;
             const phase =
                 p.phase !== undefined ? p.phase : Math.random() * Math.PI * 2;
-            renderPatch(data, w, h, {
-                orientation: orient,
-                contrast: p.contrast ?? 0.8,
-                spatialFreq: p.spatialFreq ?? 0.04,
-                sigma: p.sigma ?? 30,
-                noise: p.noise || 0,
-                phase,
-                cx: is2afc ? (i === 0 ? 85 : 215) : 150,
-                cy: 150,
-                radius: is2afc ? 65 : 100,
-            });
+
+            if ("type" in p && p.type === "lateral") {
+                renderLateralMasking(data, w, h, {
+                    orientation: orient,
+                    targetContrast: p.targetContrast,
+                    flankerContrast: p.flankerContrast,
+                    spatialFreq: p.spatialFreq,
+                    phase,
+                    sigma: p.sigma,
+                    flankerDistance: p.flankerDistance,
+                    cx: is2afc ? (i === 0 ? 85 : 215) : 150,
+                    cy: 150,
+                });
+            } else {
+                const patch = p as { contrast?: number; spatialFreq?: number; sigma?: number; noise?: number };
+                renderPatch(data, w, h, {
+                    orientation: orient,
+                    contrast: patch.contrast ?? 0.8,
+                    spatialFreq: patch.spatialFreq ?? 0.04,
+                    sigma: patch.sigma ?? 30,
+                    noise: patch.noise || 0,
+                    phase,
+                    cx: is2afc ? (i === 0 ? 85 : 215) : 150,
+                    cy: 150,
+                    radius: is2afc ? 65 : 100,
+                });
+            }
         }
         ctx.putImageData(imageData, 0, 0);
     }
@@ -175,13 +192,23 @@
                 fixationOpacity = 0;
                 gs.phase = "stimulus";
                 renderCurrentTrial();
-                gs.waitingForResponse = true;
-                gs.phase = "waiting";
+
+                // Adaptive stimulus duration (80-320ms)
+                // Reference: Polat U (2009) Vision Research
+                loopTimeout = setTimeout(() => {
+                    // After stimulus duration, show blank (ISI)
+                    showBlankCanvas();
+                    loopTimeout = setTimeout(() => {
+                        gs.waitingForResponse = true;
+                        gs.phase = "waiting";
+                    }, gs.isi);
+                }, gs.stimulusDuration);
             }, 300);
         } else if (gs.phase === "feedback") {
             loopTimeout = setTimeout(() => {
                 showFeedback = false;
                 nextTrial(gs);
+                updateStimulusDuration(gs);
                 if (gs.phase === "done") {
                     endTraining();
                 } else {

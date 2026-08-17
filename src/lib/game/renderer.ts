@@ -61,3 +61,86 @@ export function showBlank(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 }
+
+// ── Lateral Masking ─────────────────────────────────────────────────
+// Renders a target Gabor flanked by two collinear high-contrast Gabors.
+// Flanker distance is measured in wavelengths (λ = 1 / spatialFreq).
+// Based on Polat & Sagi (1993, 1994) lateral masking paradigm.
+
+export interface LateralMaskingParams {
+  orientation: number;
+  targetContrast: number;
+  flankerContrast: number;
+  spatialFreq: number;
+  phase: number;
+  sigma: number;
+  flankerDistance: number; // in units of λ (wavelength)
+  cx?: number;
+  cy?: number;
+}
+
+export function renderLateralMasking(
+  data: Uint8ClampedArray,
+  w: number,
+  h: number,
+  params: LateralMaskingParams
+) {
+  const {
+    orientation,
+    targetContrast,
+    flankerContrast,
+    spatialFreq,
+    phase,
+    sigma,
+    flankerDistance,
+    cx = w / 2,
+    cy = h / 2,
+  } = params;
+
+  const lambda = 1 / spatialFreq; // wavelength in pixels
+  const dist = flankerDistance * lambda; // pixel distance along orientation axis
+  const theta = (orientation * Math.PI) / 180;
+
+  // Flanker centers along the collinear axis
+  const dx = dist * Math.sin(theta);
+  const dy = dist * Math.cos(theta);
+
+  const radius = sigma * 1.8; // Gaussian extends ~1.8σ
+
+  // Render flankers first (behind target)
+  renderPatch(data, w, h, {
+    orientation,
+    contrast: flankerContrast,
+    spatialFreq,
+    phase,
+    sigma,
+    noise: 0,
+    cx: cx - dx,
+    cy: cy - dy,
+    radius,
+  });
+  renderPatch(data, w, h, {
+    orientation,
+    contrast: flankerContrast,
+    spatialFreq,
+    phase,
+    sigma,
+    noise: 0,
+    cx: cx + dx,
+    cy: cy + dy,
+    radius,
+  });
+
+  // Render target on top
+  renderPatch(data, w, h, {
+    orientation,
+    contrast: targetContrast,
+    spatialFreq,
+    phase,
+    sigma,
+    noise: 0,
+    cx,
+    cy,
+    radius,
+  });
+}

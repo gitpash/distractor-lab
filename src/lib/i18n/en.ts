@@ -34,6 +34,12 @@ export default {
 			desc: "Random stimulus",
 			diffLabel: "Contrast",
 		},
+		lateral: {
+			title: "Lateral",
+			subtitle: "Masking",
+			desc: "Collinear flankers",
+			diffLabel: "Target contrast",
+		},
 	},
 	settings: {
 		trials: "Trials:",

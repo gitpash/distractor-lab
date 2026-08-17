@@ -10,8 +10,20 @@ export interface PatchParams {
   phase: number;
 }
 
+export interface LateralMaskingTrialPatch {
+  type: 'lateral';
+  orient?: OrientKey;
+  angle?: number;
+  targetContrast: number;
+  flankerContrast: number;
+  spatialFreq: number;
+  sigma: number;
+  flankerDistance: number;
+  phase: number;
+}
+
 export interface Trial {
-  patches: PatchParams[];
+  patches: (PatchParams | LateralMaskingTrialPatch)[];
   correct: OrientKey | number;
 }
 
@@ -33,6 +45,10 @@ export interface GameState {
   startTime: number;
   lastAnswerCorrect: boolean | null;
   lastAnswerKey: string | null;
+  consecutiveCorrect: number;
+  consecutiveIncorrect: number;
+  stimulusDuration: number; // ms, adaptive: 80-320ms
+  isi: number; // ms, inter-stimulus interval: 500ms
 }
 
 export interface HistoryEntry {

@@ -184,6 +184,43 @@ export const MODES = {
       };
     },
   } as const,
+  // ── Lateral Masking (Polat & Sagi paradigm) ──────────────────────
+  // Target Gabor flanked by two collinear high-contrast Gabors.
+  // Adaptive variable: target contrast. Flanker contrast fixed high.
+  // Based on: Polat U, Sagi D. Vision Research. 1993;33(7):993–999.
+  lateral: {
+    title: "Lateral",
+    subtitle: "Masking",
+    icon: "≡",
+    wide: false,
+    desc: "Collinear flankers",
+    type: "4afc",
+    diffLabel: "Target",
+    diffStart: 50,
+    diffMin: 2,
+    diffMax: 100,
+    diffStep: 3,
+    diffLower: true, // lower contrast = harder
+    diffFormat: (v: number) => v.toFixed(0) + "%",
+    buildTrial(diff: number, phase: number) {
+      const key = randomOrient();
+      return {
+        patches: [
+          {
+            type: "lateral" as const,
+            orient: key,
+            targetContrast: diff / 100,
+            flankerContrast: 0.8,
+            spatialFreq: 0.03,
+            sigma: 28,
+            flankerDistance: 4, // 4λ — within facilitation zone
+            phase,
+          },
+        ],
+        correct: key,
+      };
+    },
+  } as const,
 } as const;
 
 const objectKeys = <Obj extends {}>(obj: Obj): (keyof Obj)[] => {

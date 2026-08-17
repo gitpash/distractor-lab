@@ -20,6 +20,10 @@ export function createGameState(mode: string, numTrials: number): GameState {
     startTime: Date.now(),
     lastAnswerCorrect: null,
     lastAnswerKey: null,
+    consecutiveCorrect: 0,
+    consecutiveIncorrect: 0,
+    stimulusDuration: 320, // start at max, decrease as performance improves
+    isi: 500, // fixed 500ms between displays
   };
 }
 
@@ -60,21 +64,36 @@ export function processAnswer(state: GameState, key: string) {
     state.correct++;
   }
 
-  // Staircase
-  state.hitWindow.push(isCorrect);
-  if (state.hitWindow.length > state.hitWindowSize) state.hitWindow.shift();
+  // ── 1-up/3-down staircase (Polat & Sagi paradigm) ────────────────
+  // 1 correct → increase difficulty (1-up)
+  // 3 consecutive incorrect → decrease difficulty (3-down)
+  // Converges to ~79% accuracy for 2AFC tasks.
+  // Reference: Watson & Pelli (1983), Polat et al. (2004)
 
-  const recentAcc = state.hitWindow.filter(Boolean).length / state.hitWindow.length;
+  if (isCorrect) {
+    state.consecutiveCorrect++;
+    state.consecutiveIncorrect = 0;
 
-  if (recentAcc >= 0.75) {
+    // 1-up: any correct answer → make harder
     state.difficulty = mode.diffLower
       ? Math.max(mode.diffMin, state.difficulty - mode.diffStep)
       : Math.min(mode.diffMax, state.difficulty + mode.diffStep);
-  } else if (recentAcc <= 0.4) {
-    state.difficulty = mode.diffLower
-      ? Math.min(mode.diffMax, state.difficulty + mode.diffStep)
-      : Math.max(mode.diffMin, state.difficulty - mode.diffStep);
+  } else {
+    state.consecutiveIncorrect++;
+    state.consecutiveCorrect = 0;
+
+    // 3-down: 3 consecutive incorrect → make easier
+    if (state.consecutiveIncorrect >= 3) {
+      state.difficulty = mode.diffLower
+        ? Math.min(mode.diffMax, state.difficulty + mode.diffStep)
+        : Math.max(mode.diffMin, state.difficulty - mode.diffStep);
+      state.consecutiveIncorrect = 0;
+    }
   }
+
+  // Update hit window for display purposes
+  state.hitWindow.push(isCorrect);
+  if (state.hitWindow.length > state.hitWindowSize) state.hitWindow.shift();
 
   state.phase = 'feedback';
 }
@@ -86,17 +105,22 @@ export function skipTrial(state: GameState) {
   state.total++;
   state.lastAnswerCorrect = null;
   state.lastAnswerKey = null;
-  state.hitWindow.push(false);
-  if (state.hitWindow.length > state.hitWindowSize) state.hitWindow.shift();
 
-  const mode = MODES[state.currentMode as keyof typeof MODES];
-  const recentAcc = state.hitWindow.filter(Boolean).length / state.hitWindow.length;
+  // Skip counts as incorrect for staircase purposes
+  state.consecutiveCorrect = 0;
+  state.consecutiveIncorrect++;
 
-  if (recentAcc <= 0.4) {
+  if (state.consecutiveIncorrect >= 3) {
+    const mode = MODES[state.currentMode as keyof typeof MODES];
     state.difficulty = mode.diffLower
       ? Math.min(mode.diffMax, state.difficulty + mode.diffStep)
       : Math.max(mode.diffMin, state.difficulty - mode.diffStep);
+    state.consecutiveIncorrect = 0;
   }
+
+  // Update hit window for display purposes
+  state.hitWindow.push(false);
+  if (state.hitWindow.length > state.hitWindowSize) state.hitWindow.shift();
 
   state.phase = 'feedback';
 }
@@ -126,4 +150,22 @@ export function getCorrectAnswerLabel(state: GameState): string {
   const orientKey = state.currentTrial.correct as OrientKey;
   const o = ORIENTATIONS[orientKey];
   return o.symbol + ' ' + o.labelKey.split('.').pop();
+}
+
+// ── Adaptive stimulus timing ────────────────────────────────────────
+// Duration adapts based on recent accuracy:
+// - High accuracy (>80%) → decrease duration (harder, min 80ms)
+// - Low accuracy (<60%) → increase duration (easier, max 320ms)
+// Reference: Polat U (2009) Vision Research.
+
+export function updateStimulusDuration(state: GameState) {
+  const recentAcc = state.hitWindow.length > 0
+    ? state.hitWindow.filter(Boolean).length / state.hitWindow.length
+    : 0.5;
+
+  if (recentAcc > 0.8 && state.stimulusDuration > 80) {
+    state.stimulusDuration = Math.max(80, state.stimulusDuration - 20);
+  } else if (recentAcc < 0.6 && state.stimulusDuration < 320) {
+    state.stimulusDuration = Math.min(320, state.stimulusDuration + 20);
+  }
 }

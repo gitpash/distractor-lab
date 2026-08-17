@@ -1,7 +1,7 @@
 <script lang="ts">
     import { transition, getAnimClass, type AnimState } from "$lib/game/icon-animation";
 
-    type IconName = "classic" | "frequency" | "noise" | "fine" | "combo";
+    type IconName = "classic" | "frequency" | "noise" | "fine" | "combo" | "lateral";
     let { name, active = false }: { name: IconName; active?: boolean } = $props();
 
     let animState: AnimState = $state('idle');
@@ -321,6 +321,44 @@
             <rect x="8" y="8" width="1" height="1" fill="currentColor"/>
         </g>
     </svg>
+
+{:else if name === "lateral"}
+    <!-- Lateral masking: 3 collinear patches (flankers + target) -->
+    <svg
+        class="pixel-icon icon-lateral {animClass}"
+        viewBox="0 0 12 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        onpointerenter={handlePointerEnter}
+        onpointerleave={handlePointerLeave}
+        onanimationend={handleAnimationEnd}
+    >
+        <g class="icon-flankers">
+            <!-- left flanker -->
+            <rect x="0" y="4" width="1" height="1" fill="currentColor"/>
+            <rect x="0" y="5" width="1" height="1" fill="currentColor"/>
+            <rect x="0" y="6" width="1" height="1" fill="currentColor"/>
+            <rect x="0" y="7" width="1" height="1" fill="currentColor"/>
+            <rect x="1" y="3" width="1" height="1" fill="currentColor"/>
+            <rect x="1" y="8" width="1" height="1" fill="currentColor"/>
+            <!-- right flanker -->
+            <rect x="11" y="4" width="1" height="1" fill="currentColor"/>
+            <rect x="11" y="5" width="1" height="1" fill="currentColor"/>
+            <rect x="11" y="6" width="1" height="1" fill="currentColor"/>
+            <rect x="11" y="7" width="1" height="1" fill="currentColor"/>
+            <rect x="10" y="3" width="1" height="1" fill="currentColor"/>
+            <rect x="10" y="8" width="1" height="1" fill="currentColor"/>
+        </g>
+        <g class="icon-target">
+            <!-- center target (brighter) -->
+            <rect x="5" y="3" width="2" height="1" fill="currentColor"/>
+            <rect x="4" y="4" width="4" height="1" fill="currentColor"/>
+            <rect x="4" y="5" width="4" height="2" fill="currentColor"/>
+            <rect x="4" y="7" width="4" height="1" fill="currentColor"/>
+            <rect x="5" y="8" width="2" height="1" fill="currentColor"/>
+        </g>
+    </svg>
 {/if}
 
 <style>
@@ -340,6 +378,7 @@
     .icon-noise.hover { animation: hStatic 0.3s steps(3); }
     .icon-fine.hover { animation: hBlink 0.4s ease-in-out; }
     .icon-combo.hover { animation: hShake 0.4s ease-in-out; }
+    .icon-lateral.hover { animation: hPulse 0.4s ease-in-out; }
 
     @keyframes hCoinFlip {
         0% { transform: rotateY(0deg); }
@@ -367,6 +406,10 @@
         60% { transform: rotate(-8deg); }
         80% { transform: rotate(4deg); }
     }
+    @keyframes hPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
 
     /* ===== ACTIVE: slow continuous loop per mode ===== */
     .icon-classic.active {
@@ -384,6 +427,9 @@
     }
     .icon-combo.active {
         animation: activeDiceRoll 1.5s ease-in-out infinite;
+    }
+    .icon-lateral.active {
+        animation: activeLateralPulse 2s ease-in-out infinite;
     }
 
     @keyframes activeCoinSpin {
@@ -411,5 +457,9 @@
         40% { transform: rotate(6deg) translateY(0); }
         60% { transform: rotate(-4deg) translateY(-1px); }
         80% { transform: rotate(2deg) translateY(0); }
+    }
+    @keyframes activeLateralPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.08); opacity: 0.8; }
     }
 </style>
