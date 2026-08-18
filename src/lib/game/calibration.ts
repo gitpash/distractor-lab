@@ -185,26 +185,6 @@ export function getCurrentCalibrationOrient(state: CalibrationState): OrientKey 
   return CALIBRATION_ORIENTATIONS[state.currentOrientIndex];
 }
 
-export function buildCalibrationTrial(state: CalibrationState, phase: number) {
-  const freq = getCurrentCalibrationFreq(state);
-  const orient = getCurrentCalibrationOrient(state);
-  const sigma = 1.0 / freq;
-
-  return {
-    patches: [
-      {
-        orient,
-        contrast: state.currentThreshold,
-        spatialFreq: freq,
-        sigma,
-        noise: 0,
-        phase,
-      },
-    ],
-    correct: orient,
-  };
-}
-
 export function processCalibrationAnswer(
   state: CalibrationState,
   isCorrect: boolean
