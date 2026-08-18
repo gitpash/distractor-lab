@@ -1,8 +1,8 @@
-import type { GameState, OrientKey } from './types';
+import type { GameState, OrientKey, Eye } from './types';
 import { MODES } from '$lib';
 import { ORIENTATIONS } from '$lib';
 
-export function createGameState(mode: string, numTrials: number): GameState {
+export function createGameState(mode: string, numTrials: number, eye: Eye = 'both'): GameState {
   const modeConfig = MODES[mode as keyof typeof MODES];
   return {
     running: true,
@@ -10,6 +10,7 @@ export function createGameState(mode: string, numTrials: number): GameState {
     trial: 0,
     correct: 0,
     total: 0,
+    invalidTrials: 0,
     difficulty: modeConfig.diffStart,
     currentMode: mode,
     currentTrial: null,
@@ -22,8 +23,12 @@ export function createGameState(mode: string, numTrials: number): GameState {
     lastAnswerKey: null,
     consecutiveCorrect: 0,
     consecutiveIncorrect: 0,
-    stimulusDuration: 320, // start at max, decrease as performance improves
-    isi: 500, // fixed 500ms between displays
+    stimulusDuration: 200,
+    isi: 500,
+    eye,
+    paused: false,
+    replayCount: 0,
+    maxReplays: 2,
   };
 }
 
@@ -38,6 +43,7 @@ export function nextTrial(state: GameState) {
   state.waitingForResponse = false;
   state.lastAnswerCorrect = null;
   state.lastAnswerKey = null;
+  state.replayCount = 0;
 
   const mode = MODES[state.currentMode as keyof typeof MODES];
   const phase = Math.random() * Math.PI * 2;
@@ -103,22 +109,12 @@ export function skipTrial(state: GameState) {
 
   state.waitingForResponse = false;
   state.total++;
+  state.invalidTrials++;
   state.lastAnswerCorrect = null;
   state.lastAnswerKey = null;
 
-  // Skip counts as incorrect for staircase purposes
-  state.consecutiveCorrect = 0;
-  state.consecutiveIncorrect++;
-
-  if (state.consecutiveIncorrect >= 3) {
-    const mode = MODES[state.currentMode as keyof typeof MODES];
-    state.difficulty = mode.diffLower
-      ? Math.min(mode.diffMax, state.difficulty + mode.diffStep)
-      : Math.max(mode.diffMin, state.difficulty - mode.diffStep);
-    state.consecutiveIncorrect = 0;
-  }
-
-  // Update hit window for display purposes
+  // Skip does NOT affect staircase — invalid trial, not an error.
+  // Only updates hit window for display purposes.
   state.hitWindow.push(false);
   if (state.hitWindow.length > state.hitWindowSize) state.hitWindow.shift();
 
@@ -154,18 +150,19 @@ export function getCorrectAnswerLabel(state: GameState): string {
 
 // ── Adaptive stimulus timing ────────────────────────────────────────
 // Duration adapts based on recent accuracy:
-// - High accuracy (>80%) → decrease duration (harder, min 80ms)
-// - Low accuracy (<60%) → increase duration (easier, max 320ms)
+// - High accuracy (>80%) → decrease duration (harder, min 100ms)
+// - Low accuracy (<60%) → increase duration (easier, max 200ms)
 // Reference: Polat U (2009) Vision Research.
+// Typical perceptual learning protocols: 100-200ms exposure.
 
 export function updateStimulusDuration(state: GameState) {
   const recentAcc = state.hitWindow.length > 0
     ? state.hitWindow.filter(Boolean).length / state.hitWindow.length
     : 0.5;
 
-  if (recentAcc > 0.8 && state.stimulusDuration > 80) {
-    state.stimulusDuration = Math.max(80, state.stimulusDuration - 20);
-  } else if (recentAcc < 0.6 && state.stimulusDuration < 320) {
-    state.stimulusDuration = Math.min(320, state.stimulusDuration + 20);
+  if (recentAcc > 0.8 && state.stimulusDuration > 100) {
+    state.stimulusDuration = Math.max(100, state.stimulusDuration - 15);
+  } else if (recentAcc < 0.6 && state.stimulusDuration < 200) {
+    state.stimulusDuration = Math.min(200, state.stimulusDuration + 15);
   }
 }

@@ -1,4 +1,5 @@
 export type OrientKey = 'horiz' | 'diag1' | 'vert' | 'diag2';
+export type Eye = 'both' | 'left' | 'right';
 
 export interface PatchParams {
   orient?: OrientKey;
@@ -35,6 +36,7 @@ export interface GameState {
   trial: number;
   correct: number;
   total: number;
+  invalidTrials: number;
   difficulty: number;
   currentMode: string;
   currentTrial: Trial | null;
@@ -47,8 +49,12 @@ export interface GameState {
   lastAnswerKey: string | null;
   consecutiveCorrect: number;
   consecutiveIncorrect: number;
-  stimulusDuration: number; // ms, adaptive: 80-320ms
-  isi: number; // ms, inter-stimulus interval: 500ms
+  stimulusDuration: number;
+  isi: number;
+  eye: Eye;
+  paused: boolean;
+  replayCount: number;
+  maxReplays: number;
 }
 
 export interface HistoryEntry {
@@ -60,4 +66,6 @@ export interface HistoryEntry {
   difficulty: number;
   difficultyLabel: string;
   elapsed: number;
+  eye: Eye;
+  sessionNumber?: number;
 }

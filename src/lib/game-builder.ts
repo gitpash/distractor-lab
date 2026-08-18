@@ -13,6 +13,16 @@ const ORIENT_KEYS = Object.keys(ORIENTATIONS) as (keyof typeof ORIENTATIONS)[];
 const randomOrient = (): keyof typeof ORIENTATIONS =>
   ORIENT_KEYS[Math.floor(Math.random() * ORIENT_KEYS.length)];
 
+// σ = λ (classic Gabor): sigma equals one wavelength
+// Reference: Polat & Sagi (1993), Campbell & Robson (1968)
+function sigmaFromFreq(freq: number, k: number = 1.0): number {
+  return k / freq; // λ = 1/freq, σ = k·λ
+}
+
+// Lateral mode spatial frequencies (cycles per pixel)
+// Correspond to ~1.5, 3, 4.5, 6, 9, 12 cpd at 50cm/96PPI
+const LATERAL_FREQUENCIES = [0.015, 0.03, 0.045, 0.06, 0.09, 0.12];
+
 export const MODES = {
   classic: {
     title: "Classic",
@@ -30,13 +40,14 @@ export const MODES = {
     diffFormat: (v: number) => v.toFixed(0) + "%",
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
+      const freq = 0.04;
       return {
         patches: [
           {
             orient: key,
             contrast: diff / 100,
-            spatialFreq: 0.04,
-            sigma: 30,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             noise: 0,
             phase,
           },
@@ -61,13 +72,14 @@ export const MODES = {
     diffFormat: (v: number) => (v / 1000).toFixed(3),
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
+      const freq = diff / 1000;
       return {
         patches: [
           {
             orient: key,
             contrast: 0.8,
-            spatialFreq: diff / 1000,
-            sigma: 30,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             noise: 0,
             phase,
           },
@@ -92,13 +104,14 @@ export const MODES = {
     diffFormat: (v: number) => v.toFixed(0) + "%",
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
+      const freq = 0.04;
       return {
         patches: [
           {
             orient: key,
             contrast: 0.8,
-            spatialFreq: 0.04,
-            sigma: 30,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             noise: diff / 100,
             phase,
           },
@@ -112,7 +125,7 @@ export const MODES = {
     subtitle: "2AFC",
     icon: "⇔",
     wide: false,
-    desc: "Which tiled more?",
+    desc: "Which tilted more?",
     type: "2afc",
     diffLabel: "Δ angle",
     diffStart: 15,
@@ -125,21 +138,22 @@ export const MODES = {
       const refAngle = ORIENTATIONS[randomOrient()].angle;
       const targetAngle = refAngle + diff;
       const tiltedLeft = Math.random() < 0.5;
+      const freq = 0.04;
       return {
         patches: [
           {
             angle: tiltedLeft ? targetAngle : refAngle,
             contrast: 0.8,
-            spatialFreq: 0.04,
-            sigma: 28,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             noise: 0,
             phase: phase,
           },
           {
             angle: tiltedLeft ? refAngle : targetAngle,
             contrast: 0.8,
-            spatialFreq: 0.04,
-            sigma: 28,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             noise: 0,
             phase: phase,
           },
@@ -175,7 +189,7 @@ export const MODES = {
             orient: key,
             contrast: diff / 100,
             spatialFreq,
-            sigma: 30,
+            sigma: sigmaFromFreq(spatialFreq),
             noise,
             phase,
           },
@@ -187,6 +201,7 @@ export const MODES = {
   // ── Lateral Masking (Polat & Sagi paradigm) ──────────────────────
   // Target Gabor flanked by two collinear high-contrast Gabors.
   // Adaptive variable: target contrast. Flanker contrast fixed high.
+  // Frequency rotates across trials for broad cortical training.
   // Based on: Polat U, Sagi D. Vision Research. 1993;33(7):993–999.
   lateral: {
     title: "Lateral",
@@ -204,6 +219,8 @@ export const MODES = {
     diffFormat: (v: number) => v.toFixed(0) + "%",
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
+      // Rotate through frequencies for broad training
+      const freq = LATERAL_FREQUENCIES[Math.floor(Math.random() * LATERAL_FREQUENCIES.length)];
       return {
         patches: [
           {
@@ -211,8 +228,8 @@ export const MODES = {
             orient: key,
             targetContrast: diff / 100,
             flankerContrast: 0.8,
-            spatialFreq: 0.03,
-            sigma: 28,
+            spatialFreq: freq,
+            sigma: sigmaFromFreq(freq),
             flankerDistance: 4, // 4λ — within facilitation zone
             phase,
           },
