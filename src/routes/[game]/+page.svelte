@@ -3,7 +3,7 @@
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
     import { ORIENTATIONS, MODES } from "$lib";
-    import type { OrientKey } from "$lib/game/types";
+    import type { OrientKey, Eye } from "$lib/game/types";
     import { CANVAS_SIZE, renderPatch, renderLateralMasking, showBlank } from "$lib/game/renderer";
     import {
         createGameState,
@@ -55,6 +55,9 @@
     const numTrials = $derived(
         parseInt($page.url.searchParams.get("trials") || "50"),
     );
+    const selectedEye = $derived(
+        ($page.url.searchParams.get("eye") || "both") as Eye,
+    );
 
     let gs: ReturnType<typeof createGameState> = createGameState("classic", 50);
     let session: SessionState | null = $state(null);
@@ -64,7 +67,7 @@
     $effect(() => {
         gs = isDemo
             ? createGameState("classic", 4)
-            : createGameState(gameMode, numTrials);
+            : createGameState(gameMode, numTrials, selectedEye);
         if (isSession && !isDemo) {
             session = createSessionState();
         } else {
@@ -75,8 +78,12 @@
     let feedbackText = $state("");
     let feedbackType = $state("correct" as "correct" | "wrong");
     let showFeedback = $state(false);
-    let canRepeat = $state(true);
     let activeKey = $state("");
+
+    // Pause state
+    let isPaused = $state(false);
+    let resumeCountdown = $state(0);
+    let resumeInterval: ReturnType<typeof setInterval> | null = null;
 
     const modeConfig = $derived(
         gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null,
@@ -98,6 +105,10 @@
         if (loopTimeout) {
             clearTimeout(loopTimeout);
             loopTimeout = null;
+        }
+        if (resumeInterval) {
+            clearInterval(resumeInterval);
+            resumeInterval = null;
         }
     }
 
@@ -195,14 +206,65 @@
     }
 
     function handleRepeat() {
-        if (!gs.waitingForResponse || !canRepeat) return;
-        canRepeat = false;
+        if (!gs.waitingForResponse || gs.replayCount >= gs.maxReplays) return;
+        gs.replayCount++;
         renderCurrentTrial();
         triggerHaptic("nudge");
     }
 
+    // ── Pause system ────────────────────────────────────────────────
+    function togglePause() {
+        if (isPaused) {
+            resumeGame();
+        } else {
+            pauseGame();
+        }
+    }
+
+    function pauseGame() {
+        if (isPaused || !gs.running) return;
+        isPaused = true;
+        gs.paused = true;
+        clearTimers();
+        showBlankCanvas();
+        triggerHaptic("nudge");
+    }
+
+    function resumeGame() {
+        if (!isPaused) return;
+        resumeCountdown = 3;
+        resumeInterval = setInterval(() => {
+            resumeCountdown--;
+            if (resumeCountdown <= 0) {
+                if (resumeInterval) clearInterval(resumeInterval);
+                resumeInterval = null;
+                isPaused = false;
+                gs.paused = false;
+                // Re-render current trial if we were waiting
+                if (gs.waitingForResponse) {
+                    renderCurrentTrial();
+                }
+                gameLoop();
+            }
+        }, 800);
+    }
+
+    // Auto-pause on visibility change
+    function handleVisibilityChange() {
+        if (document.hidden && gs.running && !isPaused && !isDemo) {
+            pauseGame();
+        }
+    }
+
+    onMount(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    });
+
     function gameLoop() {
-        if (!gs.running) return;
+        if (!gs.running || isPaused) return;
 
         if (session && session.running) {
             updateSessionTimer(session);
@@ -223,7 +285,7 @@
 
         if (gs.phase === "fixation") {
             fixationOpacity = 1;
-            canRepeat = true;
+            gs.replayCount = 0;
             showBlankCanvas();
             loopTimeout = setTimeout(() => {
                 fixationOpacity = 0;
@@ -255,7 +317,7 @@
     }
 
     function handleAnswer(key: string) {
-        if (!gs.waitingForResponse || !gs.running) return;
+        if (!gs.waitingForResponse || !gs.running || isPaused) return;
         processAnswer(gs, key);
         if (gs.lastAnswerCorrect) {
             feedbackText = "✓";
@@ -271,15 +333,37 @@
     }
 
     function handleSkip() {
-        if (!gs.waitingForResponse || !gs.running) return;
+        if (!gs.waitingForResponse || !gs.running || isPaused) return;
         triggerHaptic("nudge");
         skipTrial(gs);
         gameLoop();
     }
 
     function onKeydown(e: KeyboardEvent) {
-        if (!gs.running || !gs.waitingForResponse) return;
+        // Pause toggle with Escape or Space
+        if (e.key === "Escape" || (e.key === " " && !gs.waitingForResponse)) {
+            e.preventDefault();
+            togglePause();
+            return;
+        }
+
+        // Resume with Enter/Space when paused
+        if (isPaused && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            resumeGame();
+            return;
+        }
+
+        if (!gs.running || !gs.waitingForResponse || isPaused) return;
         if (!modeConfig) return;
+
+        // R key for replay
+        if (e.key === "r" || e.key === "R") {
+            e.preventDefault();
+            handleRepeat();
+            return;
+        }
+
         const key = getKeyBinding(e, modeConfig.type as "4afc" | "2afc");
         if (!key) return;
         e.preventDefault();
@@ -297,6 +381,7 @@
         params.set("acc", getAccuracy(gs));
         params.set("correct", String(gs.correct));
         params.set("total", String(gs.total));
+        params.set("invalid", String(gs.invalidTrials));
         params.set("difficulty", String(gs.difficulty));
         params.set(
             "time",
@@ -324,23 +409,34 @@
 
 <div class="game-screen">
     <div id="topBar">
+        <button class="btn btn-ghost pause-btn" onclick={togglePause}>
+            {isPaused ? "▶" : "⏸"}
+        </button>
         <div class="progress-track">
             <div class="progress-fill" style="width: {getProgress(gs)}%"></div>
         </div>
         <div class="trial-counter">{gs.trial} / {gs.numTrials}</div>
     </div>
+    {#if selectedEye !== "both"}
+        <div class="eye-instruction">
+            {$t(selectedEye === "left" ? "eye.instructionLeft" : "eye.instructionRight")}
+        </div>
+    {/if}
     <div class="hud">
         <span class="hud-stat"
             >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
         >
         <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
+        {#if gs.invalidTrials > 0}
+            <span class="hud-invalid">skip: {gs.invalidTrials}</span>
+        {/if}
         {#if session && session.running}
             <span class="hud-session">{sessionDisplay}</span>
             <span class="hud-phase">{sessionPhaseDisplay}</span>
         {/if}
     </div>
 
-    <div class="canvas-wrap">
+    <div class="canvas-wrap" class:paused={isPaused}>
         <canvas
             bind:this={canvasEl}
             width={CANVAS_SIZE}
@@ -353,6 +449,18 @@
                 {feedbackText}
             </div>
         {/if}
+        {#if isPaused}
+            <div class="pause-overlay">
+                {#if resumeCountdown > 0}
+                    <div class="resume-countdown">{resumeCountdown}</div>
+                {:else}
+                    <div class="pause-label">⏸ {$t("game.paused")}</div>
+                    <button class="btn btn-primary" onclick={resumeGame}>
+                        {$t("game.resume")}
+                    </button>
+                {/if}
+            </div>
+        {/if}
         <CrtOverlay />
     </div>
 
@@ -362,11 +470,16 @@
                 onAnswer={handleAnswer}
                 onSkip={handleSkip}
                 onRepeat={handleRepeat}
-                {canRepeat}
+                canRepeat={gs.replayCount < gs.maxReplays}
                 {isIOS}
             />
         {:else}
-            <KeyHints layout="answers" onKey={handleAnswer} {activeKey} />
+            <div class="desktop-controls">
+                <KeyHints layout="answers" onKey={handleAnswer} {activeKey} />
+                <div class="replay-hint">
+                    <kbd>R</kbd> replay ({gs.maxReplays - gs.replayCount} left)
+                </div>
+            </div>
         {/if}
     {/if}
 </div>
@@ -384,8 +497,13 @@
         width: 100%;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         padding: 4px 0;
+    }
+    .pause-btn {
+        font-size: var(--text-base);
+        padding: 4px 8px;
+        min-width: 32px;
     }
     .progress-track {
         flex: 1;
@@ -408,7 +526,7 @@
     }
     .hud {
         display: flex;
-        gap: 20px;
+        gap: 16px;
         font-size: var(--text-base);
         color: var(--text-secondary);
         font-variant-numeric: tabular-nums;
@@ -420,6 +538,10 @@
     .hud-diff {
         color: var(--accent);
     }
+    .hud-invalid {
+        color: var(--text-muted);
+        font-size: var(--text-xs);
+    }
     .hud-session {
         color: var(--text-primary);
         font-weight: 600;
@@ -428,6 +550,18 @@
         color: var(--text-muted);
         font-size: var(--text-xs);
         text-transform: capitalize;
+    }
+    .canvas-wrap {
+        position: relative;
+        width: min(70vw, 70vh, 320px);
+        height: min(70vw, 70vh, 320px);
+        background: var(--bg-tertiary);
+        border-radius: var(--radius);
+        overflow: hidden;
+        transition: opacity var(--duration-normal) ease;
+    }
+    .canvas-wrap.paused {
+        opacity: 0.3;
     }
     #gaborCanvas {
         width: 100%;
@@ -484,15 +618,85 @@
         background: var(--red);
         color: #fff;
     }
+    .pause-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.85);
+        border-radius: var(--radius);
+        z-index: 20;
+        gap: 12px;
+    }
+    .pause-label {
+        font-size: var(--text-lg);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    .resume-countdown {
+        font-size: 3rem;
+        color: var(--accent);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        animation: pulse 0.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    .desktop-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .replay-hint {
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .replay-hint kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: 0.65rem;
+        color: var(--text-secondary);
+        line-height: 1;
+    }
     @media (max-width: 600px) {
         .hud {
-            gap: 12px;
+            gap: 10px;
             font-size: var(--text-xs);
             margin-bottom: 2px;
         }
         #topBar {
-            gap: 8px;
+            gap: 6px;
             padding: 4px 0;
         }
+        .canvas-wrap {
+            width: min(85vw, 85vh, 360px);
+            height: min(85vw, 85vh, 360px);
+        }
+    }
+    .eye-instruction {
+        font-size: var(--text-sm);
+        color: var(--accent);
+        text-align: center;
+        padding: 6px 12px;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius);
+        margin-bottom: 4px;
+        border: 1px solid var(--accent-dim);
     }
 </style>

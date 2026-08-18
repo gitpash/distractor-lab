@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { gameModes, MODES, type GameMode } from "$lib";
+    import type { Eye } from "$lib/game/types";
     import { t } from "svelte-i18n";
     import PixelIcon from "$lib/pixel-icons.svelte";
     import KeyHints from "$lib/key-hints.svelte";
@@ -22,6 +23,7 @@
     );
 
     let trialCount = $state("50");
+    let selectedEye = $state<Eye>("both");
     let history = $state<HistoryEntry[]>([]);
 
     history = getHistory();
@@ -38,7 +40,7 @@
 
     function startGame() {
         triggerHaptic("success");
-        goto(`/${selectedGameMode}?trials=${trialCount}`);
+        goto(`/${selectedGameMode}?trials=${trialCount}&eye=${selectedEye}`);
     }
 
     function onKeydown(e: KeyboardEvent) {
@@ -95,10 +97,31 @@
         {/each}
     </div>
 
+    <div class="eye-selector">
+        <span class="eye-label">{$t("settings.eye")}</span>
+        <div class="eye-buttons">
+            <button
+                class="btn btn-ghost"
+                class:active={selectedEye === "both"}
+                onclick={() => { selectedEye = "both"; triggerHaptic("nudge"); }}
+            >{$t("settings.eyeBoth")}</button>
+            <button
+                class="btn btn-ghost"
+                class:active={selectedEye === "left"}
+                onclick={() => { selectedEye = "left"; triggerHaptic("nudge"); }}
+            >{$t("settings.eyeLeft")}</button>
+            <button
+                class="btn btn-ghost"
+                class:active={selectedEye === "right"}
+                onclick={() => { selectedEye = "right"; triggerHaptic("nudge"); }}
+            >{$t("settings.eyeRight")}</button>
+        </div>
+    </div>
+
     <div class="start-actions">
         <div class="action-row">
             <a class="btn btn-secondary" href="/calibration">
-                {$t("calibration.title")}
+                {$t("actions.calibrate")}
             </a>
             <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
                 {$t("actions.start")}
@@ -147,6 +170,8 @@
             </div>
         </div>
     {/if}
+
+    <p class="disclaimer">{$t("disclaimer")}</p>
 </div>
 
 <style>
@@ -339,5 +364,42 @@
     }
     .btn-danger:hover {
         color: var(--red) !important;
+    }
+    .eye-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .eye-label {
+        font-size: var(--text-sm);
+        color: var(--text-muted);
+    }
+    .eye-buttons {
+        display: flex;
+        gap: 2px;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius);
+        padding: 2px;
+    }
+    .eye-buttons .btn {
+        padding: 4px 10px;
+        font-size: var(--text-xs);
+        border-radius: calc(var(--radius) - 2px);
+    }
+    .eye-buttons .btn.active {
+        background: var(--accent);
+        color: var(--text-on-accent);
+    }
+    .disclaimer {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        opacity: 0.6;
+        margin-top: 24px;
+        line-height: 1.4;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
     }
 </style>

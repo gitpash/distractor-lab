@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
     import { MODES } from "$lib";
+    import type { Eye } from "$lib/game/types";
     import { saveHistory } from "$lib/game/history";
 
     const gameMode = $derived($page.url.searchParams.get("mode") || "classic");
@@ -12,6 +13,7 @@
     const difficulty = $derived(parseFloat($page.url.searchParams.get("difficulty") || "0"));
     const timeSeconds = $derived(parseInt($page.url.searchParams.get("time") || "0"));
     const numTrials = $derived(parseInt($page.url.searchParams.get("trials") || "50"));
+    const selectedEye = $derived(($page.url.searchParams.get("eye") || "both") as Eye);
 
     const modeConfig = $derived(MODES[gameMode as keyof typeof MODES]);
 
@@ -43,6 +45,7 @@
                 difficulty,
                 difficultyLabel: modeConfig.diffLabel,
                 elapsed: timeSeconds,
+                eye: selectedEye,
             });
         }
     });
