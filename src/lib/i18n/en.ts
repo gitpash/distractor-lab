@@ -43,6 +43,10 @@ export default {
 	},
 	settings: {
 		trials: "Trials:",
+		eye: "Eye:",
+		eyeBoth: "Both",
+		eyeLeft: "Left",
+		eyeRight: "Right",
 	},
 	actions: {
 		start: "Start",
@@ -50,6 +54,7 @@ export default {
 		demo: "Show Orientations",
 		playAgain: "Play Again",
 		home: "Home",
+		calibrate: "Calibrate",
 	},
 	orientations: {
 		horiz: "Horizontal",
@@ -62,6 +67,8 @@ export default {
 	game: {
 		trialCounter: "Trial {current}/{total}",
 		accuracy: "Accuracy",
+		paused: "Paused",
+		resume: "Resume",
 	},
 	results: {
 		title: "Training Complete!",
@@ -83,5 +90,40 @@ export default {
 		trials: "trials",
 		point: "Point",
 		threshold: "Threshold",
+		next: "Next",
+		step: "Step",
+		// Phase 1: Setup
+		setupDesc: "Set up your display for accurate training. These steps ensure the contrasts you see are real.",
+		step1Title: "Brightness & Contrast",
+		step1Desc: "Set monitor brightness to 40–60%. Set contrast to medium (not maximum).",
+		step2Title: "Disable color shifts",
+		step2Desc: "Turn off True Tone, Night Shift, f.lux, and any automatic color adjustment.",
+		step3Title: "Viewing distance",
+		step3Desc: "Sit at a comfortable arm's length (~50–60 cm). Keep it consistent between sessions.",
+		// Phase 2: Gamma
+		gammaTitle: "Gamma Check",
+		gammaDesc: "The left half shows a solid gray. The right half shows a black-and-white checkerboard. Adjust brightness until both halves look equally bright.",
+		brightness: "Brightness",
+		gammaHint: "If the checkerboard looks brighter or darker than the gray, your display gamma may be off. This is normal — just match them as close as you can.",
+		gammaConfirm: "Looks equal — Next",
+		resetTypical: "Reset to typical (186)",
+		// Phase 3: Floor
+		floorTitle: "Contrast Floor",
+		floorDesc: "This shows the weakest contrast your training will use. Toggle visibility and adjust gain so the patch is barely visible.",
+		showPatch: "Show patch",
+		hidePatch: "Hide patch",
+		gain: "Gain",
+		floorHint: "If you can't see the patch at all, increase gain. If it's obviously visible, decrease gain. The goal is 'just barely visible'.",
+		// Phase 4: Thresholds
+		thresholdsTitle: "Measuring Thresholds",
+		thresholdsDesc: "A Gabor patch will appear briefly. Identify its orientation using the keys below. The contrast will adapt to find your personal threshold at each frequency.",
+		completeTitle: "Calibration Complete",
+		completeDesc: "Your profile has been saved. Training will adapt to your personal contrast sensitivity.",
 	},
+	eye: {
+		instructionLeft: "Close your left eye and keep it closed during the session.",
+		instructionRight: "Close your right eye and keep it closed during the session.",
+		coverReminder: "Make sure the correct eye is covered before starting.",
+	},
+	disclaimer: "Training tool based on perceptual learning research. Not a medical device. Consult an ophthalmologist for clinical advice.",
 };
