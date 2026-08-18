@@ -1,8 +1,4 @@
-<script lang="ts">
-    let { intensity = 0.3 } = $props();
-</script>
-
-<div class="crt-overlay" style="--intensity: {intensity}">
+<div class="crt-overlay">
     <div class="scanlines"></div>
     <div class="vignette"></div>
 </div>
@@ -19,8 +15,8 @@
         inset: 0;
         background: repeating-linear-gradient(
             0deg,
-            rgba(0, 0, 0, var(--intensity)) 0px,
-            rgba(0, 0, 0, var(--intensity)) 1px,
+            rgba(0, 0, 0, 0.2) 0px,
+            rgba(0, 0, 0, 0.2) 1px,
             transparent 1px,
             transparent 3px
         );

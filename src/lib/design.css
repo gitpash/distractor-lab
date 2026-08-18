@@ -1,0 +1,193 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Design System — shared tokens, components, and motion rules
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ── */
+:root {
+    /* Backgrounds */
+    --bg-primary: #0a0e14;
+    --bg-secondary: #131820;
+    --bg-tertiary: #1a2030;
+    --border: #2a3040;
+
+    /* Text */
+    --text-primary: #e0e8f0;
+    --text-secondary: #7080a0;
+    --text-muted: #404858;
+
+    /* Accent */
+    --accent: #00e5ff;
+    --accent-dim: #0080a0;
+    --accent-glow: rgba(0, 229, 255, 0.3);
+
+    /* Semantic */
+    --green: #00ff88;
+    --green-bg: rgba(0, 255, 136, 0.15);
+    --red: #ff4060;
+    --red-bg: rgba(255, 64, 96, 0.15);
+    --amber: #ffb000;
+
+    /* Canvas */
+    --canvas-bg: #808080;
+
+    /* Radius */
+    --radius: 6px;
+    --radius-sm: 4px;
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --duration-fast: 100ms;
+    --duration-normal: 150ms;
+    --duration-slow: 200ms;
+
+    /* Type scale */
+    --text-xs: 0.6875rem;
+    --text-sm: 0.75rem;
+    --text-base: 0.8125rem;
+    --text-md: 0.875rem;
+    --text-lg: 1rem;
+    --text-xl: 1.5rem;
+}
+
+/* ── Reset ── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    font-size: var(--text-base);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ── Shared button system ── */
+.btn {
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        transform var(--duration-fast) ease-out,
+        background var(--duration-normal) ease,
+        color var(--duration-normal) ease,
+        border-color var(--duration-normal) ease,
+        box-shadow var(--duration-normal) ease;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-primary {
+    background: var(--accent-dim);
+    color: #fff;
+    font-size: var(--text-md);
+    padding: 0 40px;
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-primary:hover {
+    background: var(--accent);
+    color: var(--bg-primary);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: var(--text-base);
+    padding: 0 20px;
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+    color: var(--text-primary);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-size: var(--text-sm);
+    padding: 8px 16px;
+}
+
+.btn-ghost:hover {
+    color: var(--text-secondary);
+}
+
+/* ── kbd ── */
+kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow:
+        0 1px 0 0 var(--border),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.15);
+    line-height: 1;
+    transition: transform var(--duration-fast) ease-out, opacity var(--duration-fast) ease-out;
+}
+
+kbd:active {
+    transform: scale(0.93);
+    opacity: 0.8;
+}
+
+/* ── Canvas wrapper — unified sizing ── */
+.canvas-wrap {
+    position: relative;
+    width: min(80vw, 80vh, 400px);
+    aspect-ratio: 1;
+    background: var(--canvas-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+@media (max-width: 600px) {
+    .canvas-wrap {
+        width: min(85vw, 50vh, 300px);
+        margin: 4px 0;
+    }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

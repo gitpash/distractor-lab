@@ -86,11 +86,11 @@
         align-items: center;
         justify-content: center;
         font-size: 18px;
-        transition: all 0.1s;
+        transition: transform var(--duration-fast) ease-out, background var(--duration-normal) ease, border-color var(--duration-normal) ease;
         font-family: inherit;
     }
     .side-btn:active {
-        transform: scale(0.9);
+        transform: scale(0.97);
         background: rgba(0, 229, 255, 0.1);
         border-color: var(--accent);
     }
@@ -122,13 +122,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.1s;
+        transition: transform var(--duration-fast) ease-out, background var(--duration-normal) ease, border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
         font-family: inherit;
         padding: 0;
         overflow: hidden;
     }
     .btn:active {
-        transform: scale(0.9);
+        transform: scale(0.97);
         background: rgba(0, 229, 255, 0.2);
         border-color: var(--accent);
         box-shadow: 0 0 12px var(--accent-glow);

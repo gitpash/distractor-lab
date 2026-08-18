@@ -79,22 +79,24 @@
         width: 100%;
     }
     .result-screen h2 {
-        font-size: 24px;
+        font-size: var(--text-xl);
+        font-weight: 700;
         margin-bottom: 16px;
     }
     .big-stat {
-        font-size: 56px;
+        font-size: 3.5rem;
         font-weight: 700;
-        color: var(--green);
+        color: var(--accent);
         line-height: 1;
+        letter-spacing: -0.02em;
     }
     .big-label {
-        font-size: 14px;
+        font-size: var(--text-md);
         color: var(--text-secondary);
         margin-bottom: 16px;
     }
     .result-detail {
-        font-size: 13px;
+        font-size: var(--text-base);
         color: var(--text-secondary);
         margin: 6px 0;
     }
@@ -104,33 +106,5 @@
         justify-content: center;
         margin-top: 24px;
         flex-wrap: wrap;
-    }
-    .btn {
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        text-decoration: none;
-        font-family: inherit;
-    }
-    .btn-primary {
-        background: var(--accent-dim);
-        color: #fff;
-        font-size: 16px;
-        padding: 14px 48px;
-        border: 1px solid var(--accent);
-    }
-    .btn-primary:hover {
-        background: var(--accent);
-        color: var(--bg-primary);
-    }
-    .btn-secondary {
-        background: var(--bg-tertiary);
-        color: var(--text-secondary);
-        font-size: 13px;
-        padding: 10px 20px;
-    }
-    .btn-secondary:hover {
-        background: var(--border);
     }
 </style>

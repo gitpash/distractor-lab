@@ -95,27 +95,24 @@
         {/each}
     </div>
 
-    <div class="settings-row">
-        <label>
-            {$t("settings.trials")}
-            <select bind:value={trialCount}>
-                <option value="30">30</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-        </label>
-    </div>
-
     <div class="start-actions">
         <div class="action-row">
-            <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
-                {$t("actions.start")}
-            </button>
             <a class="btn btn-secondary" href="/calibration">
                 {$t("calibration.title")}
             </a>
+            <button class="btn btn-primary" onclick={startGame} {@attach isIOS ? hapticTrigger : undefined}>
+                {$t("actions.start")}
+            </button>
+            <label class="trials-label">
+                {$t("settings.trials")}
+                <select bind:value={trialCount}>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
         </div>
-        <a class="btn-demo" href="/demo">
+        <a class="btn btn-ghost" href="/demo">
             {$t("actions.demo")}
         </a>
     </div>
@@ -144,7 +141,7 @@
                 {/each}
             </div>
             <div class="history-clear">
-                <button class="btn-demo" onclick={handleClearHistory}>
+                <button class="btn btn-ghost btn-danger" onclick={handleClearHistory}>
                     {$t("history.clear")}
                 </button>
             </div>
@@ -166,30 +163,27 @@
         }
     }
     #startScreen h1 {
-        font-size: 24px;
+        font-size: clamp(1.5rem, 4vw, 1.75rem);
         font-weight: 700;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.02em;
         margin-bottom: 4px;
         color: var(--accent);
         text-shadow: 0 0 20px var(--accent-glow);
     }
     @media (min-width: 601px) {
         #startScreen h1 {
-            font-size: 28px;
             margin-bottom: 6px;
         }
     }
     #startScreen .subtitle {
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: var(--text-secondary);
         margin-bottom: 20px;
-        line-height: 1.4;
+        line-height: 1.5;
     }
     @media (min-width: 601px) {
         #startScreen .subtitle {
-            font-size: 13px;
             margin-bottom: 32px;
-            line-height: 1.5;
         }
     }
     .mode-grid {
@@ -208,68 +202,44 @@
         position: relative;
         background: var(--bg-secondary);
         border: 1px solid var(--border);
+        border-radius: var(--radius);
         padding: 12px 6px;
         cursor: pointer;
         text-align: center;
-        transition: border-color 0.15s, box-shadow 0.15s;
+        transition: transform var(--duration-fast) ease-out, border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
     }
     @media (min-width: 601px) {
         .mode-card {
             padding: 16px 10px;
         }
     }
-    .mode-card:hover {
-        border-color: var(--accent);
-        box-shadow: 0 0 10px var(--accent-glow), inset 0 0 20px rgba(0, 229, 255, 0.05);
+    @media (hover: hover) and (pointer: fine) {
+        .mode-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow), inset 0 0 20px rgba(0, 229, 255, 0.05);
+        }
+    }
+    .mode-card:active {
+        transform: scale(0.97);
     }
     .mode-card:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
     .mode-card.selected {
-        border-color: transparent;
+        border-color: var(--accent);
         background: rgba(0, 229, 255, 0.08);
         box-shadow: 0 0 15px var(--accent-glow);
     }
-    .mode-card.selected::before {
-        content: '';
-        position: absolute;
-        inset: -1px;
-        padding: 2px;
-        border-radius: 0;
-        background: conic-gradient(
-            from var(--border-angle, 0deg),
-            var(--accent) 0%,
-            var(--bg-secondary) 8%,
-            var(--bg-secondary) 25%,
-            var(--accent) 30%,
-            var(--bg-secondary) 35%,
-            var(--bg-secondary) 100%
-        );
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        z-index: 0;
-        animation: borderSpin 3s linear infinite;
-    }
-    @property --border-angle {
-        syntax: '<angle>';
-        initial-value: 0deg;
-        inherits: false;
-    }
-    @keyframes borderSpin {
-        to { --border-angle: 360deg; }
-    }
     .mode-card .title {
-        font-size: 14px;
+        font-size: var(--text-md);
         font-weight: 600;
         margin-bottom: 2px;
         position: relative;
         z-index: 1;
     }
     .mode-card .desc {
-        font-size: 11px;
+        font-size: var(--text-xs);
         color: var(--text-secondary);
         line-height: 1.4;
         position: relative;
@@ -277,26 +247,6 @@
     }
     .mode-card.wide {
         grid-column: span 2;
-    }
-    .settings-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-    .settings-row label {
-        font-size: 13px;
-        color: var(--text-secondary);
-    }
-    .settings-row select {
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        padding: 6px 10px;
-        font-size: 14px;
-        font-family: inherit;
     }
     .start-actions {
         display: flex;
@@ -308,40 +258,30 @@
         display: flex;
         gap: 8px;
         align-items: center;
+        justify-content: center;
     }
-    .btn {
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        text-decoration: none;
-        font-family: inherit;
-    }
-    .btn-primary {
-        background: var(--accent-dim);
-        color: #fff;
-        font-size: 14px;
-        padding: 12px 40px;
-        border: 1px solid var(--accent);
-        box-shadow: 0 0 10px var(--accent-glow);
-    }
-    .btn-primary:hover {
-        background: var(--accent);
-        color: var(--bg-primary);
-        box-shadow: 0 0 20px var(--accent-glow);
-    }
-    .btn-secondary {
-        background: transparent;
+    .trials-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--text-base);
         color: var(--text-secondary);
-        font-size: 13px;
-        padding: 10px 32px;
-        border: 1px solid var(--border);
-        text-decoration: none;
-        display: inline-block;
+        height: 44px;
     }
-    .btn-secondary:hover {
+    .trials-label select {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 10px;
+        font-size: var(--text-md);
+        font-family: inherit;
+        height: 44px;
+        transition: border-color var(--duration-normal) ease;
+    }
+    .trials-label select:focus {
+        outline: none;
         border-color: var(--accent);
-        color: var(--accent);
     }
 
     /* History */
@@ -352,7 +292,7 @@
         width: 100%;
     }
     .history-title {
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: var(--text-muted);
         margin-bottom: 8px;
         text-align: center;
@@ -364,7 +304,7 @@
     .history-list {
         max-height: 220px;
         overflow-y: auto;
-        font-size: 12px;
+        font-size: var(--text-sm);
     }
     .history-row {
         display: flex;
@@ -390,23 +330,14 @@
         background: var(--bg-tertiary);
         padding: 1px 8px;
         border-radius: 10px;
-        font-size: 11px;
+        font-size: var(--text-xs);
         color: var(--text-secondary);
     }
     .history-clear {
         text-align: center;
         margin-top: 10px;
     }
-    .btn-demo {
-        background: transparent;
-        color: var(--text-muted);
-        border: none;
-        font-size: 12px;
-        padding: 8px 16px;
-        cursor: pointer;
-        font-family: inherit;
-    }
-    .btn-demo:hover {
-        color: var(--text-secondary);
+    .btn-danger:hover {
+        color: var(--red) !important;
     }
 </style>

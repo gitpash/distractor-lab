@@ -19,7 +19,7 @@
 </script>
 
 {#if layout === "nav"}
-    <div class="key-bar nav">
+    <div class="key-bar">
         <div class="key-group">
             <span class="key-pair">
                 <kbd>&larr;</kbd><kbd>&rarr;</kbd>
@@ -42,26 +42,27 @@
                 class:active={activeKey === k.key}
                 onclick={() => onKey?.(k.key)}
             >
-                <DirIcon direction={k.dir} size={28} />
-                <div class="key-card-label">{$t(k.labelKey)}</div>
-                <div class="key-card-keys">
-                    <kbd>{k.letters}</kbd>
-                </div>
+                <DirIcon direction={k.dir} size={24} />
+                <span class="key-card-label">{$t(k.labelKey)}</span>
+                <kbd>{k.letters}</kbd>
             </button>
         {/each}
     </div>
 {/if}
 
 <style>
+    /* ── Nav bar — translucent material ── */
     .key-bar {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 12px;
-        padding: 8px 16px;
+        padding: 6px 14px;
         margin-top: 12px;
-        border: 1px solid var(--border);
-        background: var(--bg-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(19, 24, 32, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         flex-wrap: wrap;
     }
     .key-group {
@@ -74,7 +75,7 @@
         gap: 2px;
     }
     .key-label {
-        font-size: 11px;
+        font-size: var(--text-xs);
         color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -85,60 +86,64 @@
         background: var(--border);
         flex-shrink: 0;
     }
-    kbd {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 5px;
-        font-family: inherit;
-        font-size: 10px;
-        color: var(--accent);
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border);
-        border-bottom: 2px solid var(--border);
-        line-height: 1;
-    }
 
-    /* Answer grid */
+    /* ── Answer grid ── */
     .key-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 6px;
         width: 100%;
-        max-width: 480px;
+        max-width: 400px;
         margin-top: 12px;
     }
     .key-card {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
-        padding: 14px 8px;
+        gap: 6px;
+        padding: 12px 8px;
         background: var(--bg-secondary);
-        border: 2px solid var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
         cursor: pointer;
         font-family: inherit;
-        transition: all 0.15s;
+        color: var(--text-primary);
+        transition:
+            transform var(--duration-fast) ease-out,
+            border-color var(--duration-normal) ease,
+            box-shadow var(--duration-normal) ease;
     }
-    .key-card:hover {
-        border-color: var(--accent);
-        background: rgba(0, 229, 255, 0.05);
+    @media (hover: hover) and (pointer: fine) {
+        .key-card:hover {
+            border-color: var(--accent-dim);
+        }
+    }
+    .key-card:active {
+        transform: scale(0.97);
     }
     .key-card.active {
         border-color: var(--accent);
-        background: rgba(0, 229, 255, 0.15);
         box-shadow: 0 0 12px var(--accent-glow);
     }
-    .key-card-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-primary);
+    .key-card :global(.dir-icon) {
+        color: var(--text-secondary);
+        transition: color var(--duration-normal) ease;
     }
-    .key-card-keys kbd {
-        min-width: 28px;
+    .key-card.active :global(.dir-icon) {
+        color: var(--accent);
+    }
+    .key-card-label {
+        font-size: var(--text-xs);
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: 0.3px;
+    }
+    .key-card.active .key-card-label {
+        color: var(--accent);
+    }
+    .key-card kbd {
+        min-width: 32px;
         height: 20px;
-        font-size: 10px;
+        font-size: var(--text-xs);
     }
 </style>

@@ -204,13 +204,11 @@
     function gameLoop() {
         if (!gs.running) return;
 
-        // Update session timer if in session mode
         if (session && session.running) {
             updateSessionTimer(session);
             sessionDisplay = formatTime(session.elapsed);
             sessionPhaseDisplay = session.phase;
 
-            // Check if session time is up
             if (session.elapsed >= 30 * 60 * 1000) {
                 session.phase = 'complete';
                 session.running = false;
@@ -218,7 +216,6 @@
                 return;
             }
 
-            // Check if we should advance phase
             if (shouldAdvancePhase(session)) {
                 advanceSessionPhase(session);
             }
@@ -233,10 +230,7 @@
                 gs.phase = "stimulus";
                 renderCurrentTrial();
 
-                // Adaptive stimulus duration (80-320ms)
-                // Reference: Polat U (2009) Vision Research
                 loopTimeout = setTimeout(() => {
-                    // After stimulus duration, show blank (ISI)
                     showBlankCanvas();
                     loopTimeout = setTimeout(() => {
                         gs.waitingForResponse = true;
@@ -346,7 +340,7 @@
         {/if}
     </div>
 
-    <div id="canvasWrap">
+    <div class="canvas-wrap">
         <canvas
             bind:this={canvasEl}
             width={CANVAS_SIZE}
@@ -359,7 +353,7 @@
                 {feedbackText}
             </div>
         {/if}
-        <CrtOverlay intensity={0.2} />
+        <CrtOverlay />
     </div>
 
     {#if !isDemo}
@@ -404,10 +398,10 @@
         height: 100%;
         background: var(--accent);
         border-radius: 3px;
-        transition: width 0.2s;
+        transition: width var(--duration-slow) ease;
     }
     .trial-counter {
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: var(--text-muted);
         white-space: nowrap;
         font-variant-numeric: tabular-nums;
@@ -415,7 +409,7 @@
     .hud {
         display: flex;
         gap: 20px;
-        font-size: 13px;
+        font-size: var(--text-base);
         color: var(--text-secondary);
         font-variant-numeric: tabular-nums;
         margin-bottom: 4px;
@@ -432,34 +426,8 @@
     }
     .hud-phase {
         color: var(--text-muted);
-        font-size: 11px;
+        font-size: var(--text-xs);
         text-transform: capitalize;
-    }
-    #canvasWrap {
-        position: relative;
-        width: min(80vw, 80vh, 400px);
-        aspect-ratio: 1;
-        background: #808080;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 8px 0;
-        overflow: hidden;
-    }
-    @media (max-width: 600px) {
-        #canvasWrap {
-            width: min(85vw, 50vh, 300px);
-            margin: 4px 0;
-        }
-        .hud {
-            gap: 12px;
-            font-size: 11px;
-            margin-bottom: 2px;
-        }
-        #topBar {
-            gap: 8px;
-            padding: 4px 0;
-        }
     }
     #gaborCanvas {
         width: 100%;
@@ -471,7 +439,7 @@
         width: 20px;
         height: 20px;
         pointer-events: none;
-        transition: opacity 0.1s;
+        transition: opacity var(--duration-fast) ease-out;
         z-index: 5;
     }
     #fixation::before,
@@ -497,23 +465,34 @@
         bottom: 12px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 13px;
+        font-size: var(--text-base);
         font-weight: 600;
         padding: 5px 14px;
         opacity: 0;
         pointer-events: none;
         z-index: 10;
-        transition: opacity 0.15s;
+        transition: opacity var(--duration-normal) ease-out;
     }
     #feedbackLabel.show {
         opacity: 1;
     }
     #feedbackLabel.correct {
-        background: rgba(0, 255, 136, 0.9);
+        background: var(--green);
         color: #000;
     }
     #feedbackLabel.wrong {
-        background: rgba(255, 64, 96, 0.9);
+        background: var(--red);
         color: #fff;
+    }
+    @media (max-width: 600px) {
+        .hud {
+            gap: 12px;
+            font-size: var(--text-xs);
+            margin-bottom: 2px;
+        }
+        #topBar {
+            gap: 8px;
+            padding: 4px 0;
+        }
     }
 </style>

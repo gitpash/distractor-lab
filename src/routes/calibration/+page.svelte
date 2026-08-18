@@ -2,25 +2,22 @@
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
     import { ORIENTATIONS } from "$lib";
-    import type { OrientKey } from "$lib/game/types";
     import { CANVAS_SIZE, renderPatch, showBlank } from "$lib/game/renderer";
     import {
         createCalibrationState,
         getCurrentCalibrationFreq,
         getCurrentCalibrationOrient,
-        buildCalibrationTrial,
         processCalibrationAnswer,
         getCalibrationProfile,
-        formatSpatialFreq,
         CALIBRATION_FREQUENCIES,
         CALIBRATION_ORIENTATIONS,
     } from "$lib/game/calibration";
     import { getKeyBinding } from "$lib/game/keyboard";
+    import KeyHints from "$lib/key-hints.svelte";
     import {
         initHaptics,
         triggerHaptic,
         destroyHaptics,
-        getPlatform,
     } from "$lib/game/haptics";
     import { onMount } from "svelte";
 
@@ -31,7 +28,7 @@
 
     let canvasEl: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
-    let cs = createCalibrationState();
+    let cs = $state(createCalibrationState());
     let fixationOpacity = $state(0);
     let showFeedback = $state(false);
     let feedbackText = $state("");
@@ -82,20 +79,14 @@
     }
 
     function calibrationLoop() {
-        if (!cs.running) return;
-        if (cs.phase === "intro") {
-            showBlankCanvas();
-            return;
-        }
-        if (cs.phase === "running") {
-            fixationOpacity = 1;
-            showBlankCanvas();
-            loopTimeout = setTimeout(() => {
-                fixationOpacity = 0;
-                renderCurrentTrial();
-                cs.waitingForResponse = true;
-            }, 300);
-        }
+        if (!cs.running || cs.phase !== "running") return;
+        fixationOpacity = 1;
+        showBlankCanvas();
+        loopTimeout = setTimeout(() => {
+            fixationOpacity = 0;
+            renderCurrentTrial();
+            cs.waitingForResponse = true;
+        }, 300);
     }
 
     function handleAnswer(key: string) {
@@ -142,30 +133,20 @@
         cs.running = false;
         showBlankCanvas();
         const profile = getCalibrationProfile(cs);
-        // Store profile in sessionStorage for use in training
         sessionStorage.setItem('calibrationProfile', JSON.stringify(profile));
         goto("/results?mode=calibration");
     }
 
-    let loopStarted = false;
-
     function startCalibration() {
         cs = createCalibrationState();
         cs.phase = "running";
-        loopStarted = false;
-        // Loop will start from $effect once canvas is ready
     }
 
     $effect(() => {
         if (!canvasEl) return;
         ctx = canvasEl.getContext("2d")!;
         showBlankCanvas();
-    });
-
-    // Start calibration loop when phase changes to "running" and canvas is ready
-    $effect(() => {
-        if (cs.phase === "running" && ctx && !loopStarted) {
-            loopStarted = true;
+        if (cs.phase === "running") {
             calibrationLoop();
         }
     });
@@ -210,12 +191,7 @@
             {/if}
         </div>
 
-        <div class="key-hints">
-            <span class:active={activeKey === "horiz"}>A — {ORIENTATIONS.horiz.symbol}</span>
-            <span class:active={activeKey === "diag1"}>S — {ORIENTATIONS.diag1.symbol}</span>
-            <span class:active={activeKey === "vert"}>D — {ORIENTATIONS.vert.symbol}</span>
-            <span class:active={activeKey === "diag2"}>F — {ORIENTATIONS.diag2.symbol}</span>
-        </div>
+        <KeyHints layout="answers" {activeKey} />
     {/if}
 </div>
 
@@ -234,13 +210,13 @@
         max-width: 400px;
     }
     .intro-content h2 {
-        font-size: 20px;
+        font-size: var(--text-xl);
         font-weight: 700;
         color: var(--accent);
         margin-bottom: 8px;
     }
     .intro-content p {
-        font-size: 13px;
+        font-size: var(--text-base);
         color: var(--text-secondary);
         line-height: 1.5;
         margin-bottom: 16px;
@@ -249,7 +225,7 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: var(--text-muted);
         margin-bottom: 20px;
     }
@@ -263,30 +239,20 @@
     .progress-fill {
         height: 100%;
         background: var(--accent);
-        transition: width 0.2s;
+        transition: width var(--duration-slow) ease;
     }
     .stats {
         display: flex;
         gap: 20px;
-        font-size: 12px;
+        font-size: var(--text-sm);
         color: var(--text-muted);
-    }
-    .canvas-wrap {
-        position: relative;
-        width: min(80vw, 400px);
-        aspect-ratio: 1;
-        background: #808080;
-    }
-    .canvas-wrap canvas {
-        width: 100%;
-        height: 100%;
     }
     .fixation {
         position: absolute;
         width: 20px;
         height: 20px;
         pointer-events: none;
-        transition: opacity 0.1s;
+        transition: opacity var(--duration-fast) ease-out;
     }
     .fixation::before, .fixation::after {
         content: "";
@@ -310,46 +276,18 @@
         bottom: 12px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 13px;
+        font-size: var(--text-base);
         font-weight: 600;
         padding: 5px 14px;
         pointer-events: none;
+        transition: opacity var(--duration-normal) ease-out;
     }
     .feedback.correct {
-        background: rgba(0, 255, 136, 0.9);
+        background: var(--green);
         color: #000;
     }
     .feedback.wrong {
-        background: rgba(255, 64, 96, 0.9);
+        background: var(--red);
         color: #fff;
-    }
-    .key-hints {
-        display: flex;
-        gap: 16px;
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-    .key-hints span.active {
-        color: var(--accent);
-    }
-    .btn {
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        text-decoration: none;
-        font-family: inherit;
-    }
-    .btn-primary {
-        background: var(--accent-dim);
-        color: #fff;
-        font-size: 14px;
-        padding: 12px 40px;
-        border: 1px solid var(--accent);
-        box-shadow: 0 0 10px var(--accent-glow);
-    }
-    .btn-primary:hover {
-        background: var(--accent);
-        color: var(--bg-primary);
     }
 </style>
