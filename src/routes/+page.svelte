@@ -8,13 +8,10 @@
     import KeyHints from "$lib/key-hints.svelte";
     import { getHistory, clearHistory, sparklineSVG } from "$lib/game/history";
     import type { HistoryEntry } from "$lib/game/types";
-    import { initHaptics, triggerHaptic, destroyHaptics, hapticTrigger, getPlatform } from "$lib/game/haptics";
-    import { onMount } from "svelte";
+    import { triggerHaptic, hapticTrigger, getPlatform } from "$lib/game/haptics";
+    import { useHaptics } from "$lib/game/hooks";
 
-    onMount(() => {
-        initHaptics();
-        return () => destroyHaptics();
-    });
+    useHaptics();
 
     const isIOS = $derived(getPlatform() === "ios");
 

@@ -17,17 +17,11 @@
     } from "$lib/game/calibration";
     import { getKeyBinding } from "$lib/game/keyboard";
     import KeyHints from "$lib/key-hints.svelte";
-    import {
-        initHaptics,
-        triggerHaptic,
-        destroyHaptics,
-    } from "$lib/game/haptics";
-    import { onMount } from "svelte";
+    import { triggerHaptic } from "$lib/game/haptics";
+    import { useHaptics, useGameTimers } from "$lib/game/hooks";
 
-    onMount(() => {
-        initHaptics();
-        return () => destroyHaptics();
-    });
+    useHaptics();
+    const timers = useGameTimers();
 
     let canvasEl: HTMLCanvasElement | null = $state(null);
     let ctx: CanvasRenderingContext2D | null = null;
@@ -37,9 +31,6 @@
     let feedbackText = $state("");
     let feedbackType = $state("correct" as "correct" | "wrong");
     let activeKey = $state("");
-    let animFrameId = 0;
-
-    let loopTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const estimatedGamma = $derived(estimateGamma(cs.gammaBrightness));
 
@@ -52,17 +43,6 @@
             default: return "";
         }
     });
-
-    function clearTimers() {
-        if (loopTimeout) {
-            clearTimeout(loopTimeout);
-            loopTimeout = null;
-        }
-        if (animFrameId) {
-            cancelAnimationFrame(animFrameId);
-            animFrameId = 0;
-        }
-    }
 
     function ensureCtx(): CanvasRenderingContext2D | null {
         if (!canvasEl) return null;
@@ -175,20 +155,20 @@
         fixationOpacity = 1;
         drawBlank();
 
-        loopTimeout = setTimeout(() => {
+        timers.setLoopTimeout(() => {
             if (!cs.running || cs.phase !== "thresholds") return;
 
             // Step 2: Show stimulus
             fixationOpacity = 0;
             renderCurrentTrial();
 
-            loopTimeout = setTimeout(() => {
+            timers.setLoopTimeout(() => {
                 if (!cs.running || cs.phase !== "thresholds") return;
 
                 // Step 3: Blank (ISI)
                 drawBlank();
 
-                loopTimeout = setTimeout(() => {
+                timers.setLoopTimeout(() => {
                     if (!cs.running || cs.phase !== "thresholds") return;
 
                     // Step 4: Waiting for response
@@ -218,7 +198,7 @@
 
         const { allComplete } = processCalibrationAnswer(cs, isCorrect);
 
-        loopTimeout = setTimeout(() => {
+        timers.setLoopTimeout(() => {
             showFeedback = false;
             if (allComplete) {
                 endCalibration();
@@ -286,7 +266,7 @@
         return () => clearTimeout(timer);
     });
 
-    $effect(() => () => clearTimers());
+    $effect(() => () => timers.clearTimers());
 </script>
 
 <svelte:window on:keydown={onKeydown} />

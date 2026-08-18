@@ -3,47 +3,20 @@
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
     import { ORIENTATIONS, MODES } from "$lib";
-    import type { OrientKey, Eye } from "$lib/game/types";
+    import type { Eye } from "$lib/game/types";
     import { CANVAS_SIZE, renderPatch, renderLateralMasking, showBlank } from "$lib/game/renderer";
-    import {
-        createGameState,
-        nextTrial,
-        processAnswer,
-        skipTrial,
-        getAccuracy,
-        getDifficultyDisplay,
-        getProgress,
-        getCorrectAnswerLabel,
-        updateStimulusDuration,
-    } from "$lib/game/state";
-    import {
-        createSessionState,
-        updateSessionTimer,
-        shouldAdvancePhase,
-        advanceSessionPhase,
-        getProgressPercent,
-        formatTime,
-        getSessionSummary,
-        type SessionState,
-    } from "$lib/game/session";
+    import { getAccuracy, getDifficultyDisplay } from "$lib/game/state";
     import { getKeyBinding } from "$lib/game/keyboard";
+    import { createOrchestrator } from "$lib/game/orchestrator";
     import CrtOverlay from "$lib/crt-overlay.svelte";
     import KeyHints from "$lib/key-hints.svelte";
-    import PixelIcon from "$lib/pixel-icons.svelte";
     import AnswerTiles from "$lib/AnswerTiles.svelte";
-    import {
-        initHaptics,
-        triggerHaptic,
-        destroyHaptics,
-        getPlatform,
-    } from "$lib/game/haptics";
+    import { triggerHaptic, getPlatform } from "$lib/game/haptics";
+    import { useHaptics, useGameTimers } from "$lib/game/hooks";
     import { onMount } from "svelte";
 
-    onMount(() => {
-        initHaptics();
-        return () => destroyHaptics();
-    });
-
+    useHaptics();
+    const timers = useGameTimers();
     const isIOS = $derived(getPlatform() === "ios");
 
     let canvasEl: HTMLCanvasElement;
@@ -52,72 +25,47 @@
     const gameMode = $derived($page.params.game as string);
     const isDemo = $derived(gameMode === "demo");
     const isSession = $derived($page.url.searchParams.get("session") === "true");
-    const numTrials = $derived(
-        parseInt($page.url.searchParams.get("trials") || "50"),
-    );
-    const selectedEye = $derived(
-        ($page.url.searchParams.get("eye") || "both") as Eye,
-    );
+    const numTrials = $derived(parseInt($page.url.searchParams.get("trials") || "50"));
+    const selectedEye = $derived(($page.url.searchParams.get("eye") || "both") as Eye);
 
-    let gs: ReturnType<typeof createGameState> = createGameState("classic", 50);
-    let session: SessionState | null = $state(null);
-    let sessionDisplay = $state("");
-    let sessionPhaseDisplay = $state("");
-
-    $effect(() => {
-        gs = isDemo
-            ? createGameState("classic", 4)
-            : createGameState(gameMode, numTrials, selectedEye);
-        if (isSession && !isDemo) {
-            session = createSessionState();
-        } else {
-            session = null;
-        }
-    });
-
+    // UI state driven by orchestrator callbacks
+    let fixationOpacity = $state(0);
     let feedbackText = $state("");
     let feedbackType = $state("correct" as "correct" | "wrong");
     let showFeedback = $state(false);
     let activeKey = $state("");
-
-    // Pause state
     let isPaused = $state(false);
     let resumeCountdown = $state(0);
-    let resumeInterval: ReturnType<typeof setInterval> | null = null;
+    let sessionDisplay = $state("");
+    let sessionPhaseDisplay = $state("");
+
+    // Reactive mirrors of orchestrator state (updated via callbacks)
+    let trial = $state(0);
+    let numTrialsState = $state(50);
+    let accuracy = $state("—");
+    let difficultyDisplay = $state("");
+    let invalidTrials = $state(0);
+    let replayCount = $state(0);
+    let maxReplays = $state(2);
+    let sessionRunning = $state(false);
+
+    const isMobile = $derived(
+        typeof window !== "undefined" && window.matchMedia("(max-width: 600px)").matches,
+    );
 
     const modeConfig = $derived(
         gameMode && !isDemo ? MODES[gameMode as keyof typeof MODES] : null,
     );
 
-    const demoOrients: OrientKey[] = ["horiz", "diag1", "vert", "diag2"];
-    let demoIndex = $state(0);
-    let demoLabel = $state("");
-    let fixationOpacity = $state(0);
-
-    let loopTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const isMobile = $derived(
-        typeof window !== "undefined" &&
-            window.matchMedia("(max-width: 600px)").matches,
-    );
-
-    function clearTimers() {
-        if (loopTimeout) {
-            clearTimeout(loopTimeout);
-            loopTimeout = null;
-        }
-        if (resumeInterval) {
-            clearInterval(resumeInterval);
-            resumeInterval = null;
-        }
-    }
-
+    // ── Canvas rendering (DOM-specific, stays in page) ────────────────
     function showBlankCanvas() {
         if (ctx) showBlank(ctx);
     }
 
-    function renderCurrentTrial() {
-        if (!ctx || !gs.currentTrial || !modeConfig) return;
+    function renderCurrentPatch() {
+        if (!ctx || !modeConfig) return;
+        const gs = orch.getState();
+        if (!gs.currentTrial) return;
         const w = CANVAS_SIZE;
         const h = CANVAS_SIZE;
         const imageData = ctx.createImageData(w, h);
@@ -129,13 +77,10 @@
         const is2afc = modeConfig.type === "2afc";
         for (let i = 0; i < gs.currentTrial.patches.length; i++) {
             const p = gs.currentTrial.patches[i];
-            const orient =
-                p.orient !== undefined
-                    ? ORIENTATIONS[p.orient as keyof typeof ORIENTATIONS].angle
-                    : p.angle || 0;
-            const phase =
-                p.phase !== undefined ? p.phase : Math.random() * Math.PI * 2;
-
+            const orient = p.orient !== undefined
+                ? ORIENTATIONS[p.orient as keyof typeof ORIENTATIONS].angle
+                : p.angle || 0;
+            const phase = p.phase !== undefined ? p.phase : Math.random() * Math.PI * 2;
             if ("type" in p && p.type === "lateral") {
                 renderLateralMasking(data, w, h, {
                     orientation: orient,
@@ -166,243 +111,175 @@
         ctx.putImageData(imageData, 0, 0);
     }
 
-    function renderDemoPatch(orientKey: OrientKey) {
-        if (!ctx) return;
-        const w = CANVAS_SIZE;
-        const h = CANVAS_SIZE;
-        const imageData = ctx.createImageData(w, h);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] = data[i + 1] = data[i + 2] = 128;
-            data[i + 3] = 255;
-        }
-        renderPatch(data, w, h, {
-            orientation: ORIENTATIONS[orientKey].angle,
-            contrast: 0.8,
-            spatialFreq: 0.04,
-            sigma: 30,
-            phase: 0,
-            cx: 150,
-            cy: 150,
-            radius: 100,
-        });
-        ctx.putImageData(imageData, 0, 0);
+    function syncState() {
+        const gs = orch.getState();
+        trial = gs.trial;
+        numTrialsState = gs.numTrials;
+        accuracy = getAccuracy(gs);
+        difficultyDisplay = getDifficultyDisplay(gs);
+        invalidTrials = gs.invalidTrials;
+        replayCount = gs.replayCount;
+        maxReplays = gs.maxReplays;
+        const s = orch.getSession();
+        sessionRunning = !!s?.running;
     }
 
-    function demoLoop() {
-        if (!isDemo || demoIndex >= demoOrients.length) {
-            setTimeout(() => goto("/"), 1500);
-            return;
-        }
-        const key = demoOrients[demoIndex];
-        const o = ORIENTATIONS[key];
-        demoLabel = o.symbol + " " + $t(o.labelKey);
-        showBlankCanvas();
-        loopTimeout = setTimeout(() => {
-            renderDemoPatch(key);
-            demoIndex++;
-            loopTimeout = setTimeout(demoLoop, 1500);
-        }, 400);
-    }
+    // ── Orchestrator ──────────────────────────────────────────────────
+    let orch = createOrchestrator(
+        gameMode,
+        isDemo ? 4 : numTrials,
+        selectedEye,
+        isDemo,
+        isSession,
+        {
+            onFixationStart: () => {
+                fixationOpacity = 1;
+                showBlankCanvas();
+                syncState();
+            },
+            onStimulusShow: () => {
+                fixationOpacity = 0;
+                renderCurrentPatch();
+                syncState();
+            },
+            onBlank: () => showBlankCanvas(),
+            onWaitingForResponse: () => syncState(),
+            onFeedback: (correct, label) => {
+                feedbackText = label;
+                feedbackType = correct ? "correct" : "wrong";
+                showFeedback = true;
+                triggerHaptic(correct ? "success" : "error");
+                syncState();
+                // Auto-hide feedback
+                timers.setLoopTimeout(() => { showFeedback = false; }, 700);
+            },
+            onDone: (results) => {
+                showBlankCanvas();
+                const params = new URLSearchParams($page.url.search);
+                params.set("mode", gameMode);
+                params.set("acc", results.accuracy);
+                params.set("correct", String(results.correct));
+                params.set("total", String(results.total));
+                params.set("invalid", String(results.invalidTrials));
+                params.set("difficulty", String(results.difficulty));
+                params.set("time", String(results.elapsed));
+                goto(`/results?${params.toString()}`);
+            },
+            onSessionUpdate: (display, phase) => {
+                sessionDisplay = display;
+                sessionPhaseDisplay = phase;
+            },
+            onPauseChange: (paused) => {
+                isPaused = paused;
+                if (paused) showBlankCanvas();
+            },
+        },
+        {
+            setLoopTimeout: (fn, ms) => timers.setLoopTimeout(fn, ms),
+            setResumeInterval: (fn, ms) => timers.setResumeInterval(fn, ms),
+            clearTimers: () => timers.clearTimers(),
+        },
+    );
 
-    function handleRepeat() {
-        if (!gs.waitingForResponse || gs.replayCount >= gs.maxReplays) return;
-        gs.replayCount++;
-        renderCurrentTrial();
-        triggerHaptic("nudge");
-    }
-
-    // ── Pause system ────────────────────────────────────────────────
+    // ── Input handling ────────────────────────────────────────────────
     function togglePause() {
         if (isPaused) {
-            resumeGame();
+            resumeCountdown = 3;
+            orch.resume(() => {
+                if (orch.getState().waitingForResponse) renderCurrentPatch();
+            });
         } else {
-            pauseGame();
+            orch.pause();
         }
-    }
-
-    function pauseGame() {
-        if (isPaused || !gs.running) return;
-        isPaused = true;
-        gs.paused = true;
-        clearTimers();
-        showBlankCanvas();
-        triggerHaptic("nudge");
-    }
-
-    function resumeGame() {
-        if (!isPaused) return;
-        resumeCountdown = 3;
-        resumeInterval = setInterval(() => {
-            resumeCountdown--;
-            if (resumeCountdown <= 0) {
-                if (resumeInterval) clearInterval(resumeInterval);
-                resumeInterval = null;
-                isPaused = false;
-                gs.paused = false;
-                // Re-render current trial if we were waiting
-                if (gs.waitingForResponse) {
-                    renderCurrentTrial();
-                }
-                gameLoop();
-            }
-        }, 800);
-    }
-
-    // Auto-pause on visibility change
-    function handleVisibilityChange() {
-        if (document.hidden && gs.running && !isPaused && !isDemo) {
-            pauseGame();
-        }
-    }
-
-    onMount(() => {
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
-    });
-
-    function gameLoop() {
-        if (!gs.running || isPaused) return;
-
-        if (session && session.running) {
-            updateSessionTimer(session);
-            sessionDisplay = formatTime(session.elapsed);
-            sessionPhaseDisplay = session.phase;
-
-            if (session.elapsed >= 30 * 60 * 1000) {
-                session.phase = 'complete';
-                session.running = false;
-                endTraining();
-                return;
-            }
-
-            if (shouldAdvancePhase(session)) {
-                advanceSessionPhase(session);
-            }
-        }
-
-        if (gs.phase === "fixation") {
-            fixationOpacity = 1;
-            gs.replayCount = 0;
-            showBlankCanvas();
-            loopTimeout = setTimeout(() => {
-                fixationOpacity = 0;
-                gs.phase = "stimulus";
-                renderCurrentTrial();
-
-                loopTimeout = setTimeout(() => {
-                    showBlankCanvas();
-                    loopTimeout = setTimeout(() => {
-                        gs.waitingForResponse = true;
-                        gs.phase = "waiting";
-                    }, gs.isi);
-                }, gs.stimulusDuration);
-            }, 300);
-        } else if (gs.phase === "feedback") {
-            loopTimeout = setTimeout(() => {
-                showFeedback = false;
-                nextTrial(gs);
-                updateStimulusDuration(gs);
-                if (gs.phase === "done") {
-                    endTraining();
-                } else {
-                    gameLoop();
-                }
-            }, 700);
-        } else if (gs.phase === "done") {
-            endTraining();
-        }
-    }
-
-    function handleAnswer(key: string) {
-        if (!gs.waitingForResponse || !gs.running || isPaused) return;
-        processAnswer(gs, key);
-        if (gs.lastAnswerCorrect) {
-            feedbackText = "✓";
-            feedbackType = "correct";
-            triggerHaptic("success");
-        } else {
-            feedbackText = "✗ → " + getCorrectAnswerLabel(gs);
-            feedbackType = "wrong";
-            triggerHaptic("error");
-        }
-        showFeedback = true;
-        gameLoop();
-    }
-
-    function handleSkip() {
-        if (!gs.waitingForResponse || !gs.running || isPaused) return;
-        triggerHaptic("nudge");
-        skipTrial(gs);
-        gameLoop();
     }
 
     function onKeydown(e: KeyboardEvent) {
-        // Pause toggle with Escape or Space
-        if (e.key === "Escape" || (e.key === " " && !gs.waitingForResponse)) {
+        if (e.key === "Escape" || (e.key === " " && !orch.getState().waitingForResponse)) {
             e.preventDefault();
             togglePause();
             return;
         }
-
-        // Resume with Enter/Space when paused
         if (isPaused && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
-            resumeGame();
+            togglePause();
             return;
         }
-
+        const gs = orch.getState();
         if (!gs.running || !gs.waitingForResponse || isPaused) return;
         if (!modeConfig) return;
-
-        // R key for replay
         if (e.key === "r" || e.key === "R") {
             e.preventDefault();
-            handleRepeat();
+            orch.handleRepeat();
             return;
         }
-
         const key = getKeyBinding(e, modeConfig.type as "4afc" | "2afc");
         if (!key) return;
         e.preventDefault();
         activeKey = key === "skip" ? "" : key;
         setTimeout(() => { activeKey = ""; }, 300);
-        if (key === "skip") handleSkip();
-        else handleAnswer(key);
+        if (key === "skip") orch.handleSkip();
+        else orch.handleAnswer(key);
     }
 
-    function endTraining() {
-        gs.running = false;
-        showBlankCanvas();
-        const params = new URLSearchParams($page.url.search);
-        params.set("mode", gameMode);
-        params.set("acc", getAccuracy(gs));
-        params.set("correct", String(gs.correct));
-        params.set("total", String(gs.total));
-        params.set("invalid", String(gs.invalidTrials));
-        params.set("difficulty", String(gs.difficulty));
-        params.set(
-            "time",
-            String(Math.round((Date.now() - gs.startTime) / 1000)),
-        );
-        goto(`/results?${params.toString()}`);
-    }
+    // ── Lifecycle ─────────────────────────────────────────────────────
+    onMount(() => {
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && orch.getState().running && !isPaused && !isDemo) {
+                orch.pause();
+            }
+        });
+    });
 
     $effect(() => {
         if (!canvasEl) return;
         ctx = canvasEl.getContext("2d")!;
         showBlankCanvas();
-        if (isDemo) {
-            demoLoop();
-        } else {
-            nextTrial(gs);
-            gameLoop();
-        }
+        orch = createOrchestrator(
+            gameMode, isDemo ? 4 : numTrials, selectedEye, isDemo, isSession,
+            {
+                onFixationStart: () => { fixationOpacity = 1; showBlankCanvas(); syncState(); },
+                onStimulusShow: () => { fixationOpacity = 0; renderCurrentPatch(); syncState(); },
+                onBlank: () => showBlankCanvas(),
+                onWaitingForResponse: () => syncState(),
+                onFeedback: (correct, label) => {
+                    feedbackText = label;
+                    feedbackType = correct ? "correct" : "wrong";
+                    showFeedback = true;
+                    triggerHaptic(correct ? "success" : "error");
+                    syncState();
+                    timers.setLoopTimeout(() => { showFeedback = false; }, 700);
+                },
+                onDone: (results) => {
+                    showBlankCanvas();
+                    const params = new URLSearchParams($page.url.search);
+                    params.set("mode", gameMode);
+                    params.set("acc", results.accuracy);
+                    params.set("correct", String(results.correct));
+                    params.set("total", String(results.total));
+                    params.set("invalid", String(results.invalidTrials));
+                    params.set("difficulty", String(results.difficulty));
+                    params.set("time", String(results.elapsed));
+                    goto(`/results?${params.toString()}`);
+                },
+                onSessionUpdate: (display, phase) => {
+                    sessionDisplay = display;
+                    sessionPhaseDisplay = phase;
+                },
+                onPauseChange: (paused) => {
+                    isPaused = paused;
+                    if (paused) showBlankCanvas();
+                },
+            },
+            {
+                setLoopTimeout: (fn, ms) => timers.setLoopTimeout(fn, ms),
+                setResumeInterval: (fn, ms) => timers.setResumeInterval(fn, ms),
+                clearTimers: () => timers.clearTimers(),
+            },
+        );
+        orch.start();
     });
 
-    $effect(() => () => clearTimers());
+    $effect(() => () => timers.clearTimers());
 </script>
 
 <svelte:window on:keydown={onKeydown} />
@@ -413,9 +290,9 @@
             {isPaused ? "▶" : "⏸"}
         </button>
         <div class="progress-track">
-            <div class="progress-fill" style="width: {getProgress(gs)}%"></div>
+            <div class="progress-fill" style="width: {(trial / numTrialsState) * 100}%"></div>
         </div>
-        <div class="trial-counter">{gs.trial} / {gs.numTrials}</div>
+        <div class="trial-counter">{trial} / {numTrialsState}</div>
     </div>
     {#if selectedEye !== "both"}
         <div class="eye-instruction">
@@ -424,13 +301,13 @@
     {/if}
     <div class="hud">
         <span class="hud-stat"
-            >{$t("game.accuracy")}: <b>{getAccuracy(gs)}</b></span
+            >{$t("game.accuracy")}: <b>{accuracy}</b></span
         >
-        <span class="hud-diff">{getDifficultyDisplay(gs)}</span>
-        {#if gs.invalidTrials > 0}
-            <span class="hud-invalid">skip: {gs.invalidTrials}</span>
+        <span class="hud-diff">{difficultyDisplay}</span>
+        {#if invalidTrials > 0}
+            <span class="hud-invalid">skip: {invalidTrials}</span>
         {/if}
-        {#if session && session.running}
+        {#if sessionRunning}
             <span class="hud-session">{sessionDisplay}</span>
             <span class="hud-phase">{sessionPhaseDisplay}</span>
         {/if}
@@ -455,7 +332,7 @@
                     <div class="resume-countdown">{resumeCountdown}</div>
                 {:else}
                     <div class="pause-label">⏸ {$t("game.paused")}</div>
-                    <button class="btn btn-primary" onclick={resumeGame}>
+                    <button class="btn btn-primary" onclick={togglePause}>
                         {$t("game.resume")}
                     </button>
                 {/if}
@@ -467,17 +344,17 @@
     {#if !isDemo}
         {#if isMobile}
             <AnswerTiles
-                onAnswer={handleAnswer}
-                onSkip={handleSkip}
-                onRepeat={handleRepeat}
-                canRepeat={gs.replayCount < gs.maxReplays}
+                onAnswer={(k) => orch.handleAnswer(k)}
+                onSkip={() => orch.handleSkip()}
+                onRepeat={() => orch.handleRepeat()}
+                canRepeat={replayCount < maxReplays}
                 {isIOS}
             />
         {:else}
             <div class="desktop-controls">
-                <KeyHints layout="answers" onKey={handleAnswer} {activeKey} />
+                <KeyHints layout="answers" onKey={(k) => orch.handleAnswer(k)} {activeKey} />
                 <div class="replay-hint">
-                    <kbd>R</kbd> replay ({gs.maxReplays - gs.replayCount} left)
+                    <kbd>R</kbd> replay ({maxReplays - replayCount} left)
                 </div>
             </div>
         {/if}
