@@ -9,8 +9,9 @@
         onRepeat: () => void;
         canRepeat: boolean;
         isIOS: boolean;
+        modeType?: "4afc" | "2afc";
     };
-    let { onAnswer, onSkip, onRepeat, canRepeat, isIOS }: Props = $props();
+    let { onAnswer, onSkip, onRepeat, canRepeat, isIOS, modeType = "4afc" }: Props = $props();
 
     const directions = [
         { key: "horiz", dir: "horiz" as const, pos: "top" },
@@ -34,31 +35,42 @@
             {@attach isIOS ? hapticTrigger : undefined}
         >⏭</button>
     </div>
-    <div class="joystick">
-        <div class="row">
-            <span></span>
-            <button class="btn" onclick={() => onAnswer("horiz")} {@attach isIOS ? hapticTrigger : undefined}>
-                <DirIcon direction="horiz" size={32} />
+    {#if modeType === "2afc"}
+        <div class="two-choice">
+            <button class="btn-2afc left" onclick={() => onAnswer("left")} {@attach isIOS ? hapticTrigger : undefined}>
+                ◀ {$t("orientations.left")}
             </button>
-            <span></span>
-        </div>
-        <div class="row">
-            <button class="btn" onclick={() => onAnswer("diag2")} {@attach isIOS ? hapticTrigger : undefined}>
-                <DirIcon direction="diag2" size={32} />
-            </button>
-            <div class="center"></div>
-            <button class="btn" onclick={() => onAnswer("diag1")} {@attach isIOS ? hapticTrigger : undefined}>
-                <DirIcon direction="diag1" size={32} />
+            <button class="btn-2afc right" onclick={() => onAnswer("right")} {@attach isIOS ? hapticTrigger : undefined}>
+                {$t("orientations.right")} ▶
             </button>
         </div>
-        <div class="row">
-            <span></span>
-            <button class="btn" onclick={() => onAnswer("vert")} {@attach isIOS ? hapticTrigger : undefined}>
-                <DirIcon direction="vert" size={32} />
-            </button>
-            <span></span>
+    {:else}
+        <div class="joystick">
+            <div class="row">
+                <span></span>
+                <button class="btn" onclick={() => onAnswer("horiz")} {@attach isIOS ? hapticTrigger : undefined}>
+                    <DirIcon direction="horiz" size={32} />
+                </button>
+                <span></span>
+            </div>
+            <div class="row">
+                <button class="btn" onclick={() => onAnswer("diag2")} {@attach isIOS ? hapticTrigger : undefined}>
+                    <DirIcon direction="diag2" size={32} />
+                </button>
+                <div class="center"></div>
+                <button class="btn" onclick={() => onAnswer("diag1")} {@attach isIOS ? hapticTrigger : undefined}>
+                    <DirIcon direction="diag1" size={32} />
+                </button>
+            </div>
+            <div class="row">
+                <span></span>
+                <button class="btn" onclick={() => onAnswer("vert")} {@attach isIOS ? hapticTrigger : undefined}>
+                    <DirIcon direction="vert" size={32} />
+                </button>
+                <span></span>
+            </div>
         </div>
-    </div>
+    {/if}
 </div>
 
 <style>
@@ -139,5 +151,32 @@
         border-radius: 50%;
         background: var(--bg-tertiary);
         border: 1px solid var(--border);
+    }
+    .two-choice {
+        display: flex;
+        gap: 12px;
+    }
+    .btn-2afc {
+        width: 120px;
+        height: 52px;
+        border-radius: var(--radius);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: var(--text-base);
+        font-weight: 600;
+        font-family: inherit;
+        transition: transform var(--duration-fast) ease-out, background var(--duration-normal) ease, border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
+    }
+    .btn-2afc:active {
+        transform: scale(0.97);
+        background: rgba(0, 229, 255, 0.2);
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
     }
 </style>

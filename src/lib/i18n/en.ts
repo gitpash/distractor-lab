@@ -23,10 +23,11 @@ export default {
 			diffLabel: "Noise",
 		},
 		fine: {
-			title: "Fine",
+			title: "Tilt",
 			subtitle: "2AFC",
-			desc: "Which tiled more?",
-			diffLabel: "Angle difference",
+			desc: "Left or right from vertical",
+			instruction: "A single patch appears briefly. It is tilted slightly left or right from vertical. Choose the direction.",
+			diffLabel: "Tilt angle",
 		},
 		combo: {
 			title: "Combo",
@@ -55,6 +56,7 @@ export default {
 		playAgain: "Play Again",
 		home: "Home",
 		calibrate: "Calibrate",
+		recalibrate: "Recalibrate",
 	},
 	orientations: {
 		horiz: "Horizontal",
@@ -76,20 +78,25 @@ export default {
 		trials: "Trials",
 		difficulty: "Final difficulty",
 		time: "Time",
+		// Calibration results
+		calibrationTitle: "Calibration Complete!",
+		calQualityGood: "Display contrast is good",
+		calQualityMarginal: "Display contrast is lower than ideal",
+		calQualityPoor: "Display contrast is very low",
+		calContrastRange: "Visible contrast range",
+		calGamma: "Display gamma",
+		calExplanation: "Training will adapt to your display's capabilities. The difficulty range is mapped to your screen's visible contrast range.",
+		calAdviceMarginal: "For best results, increase your monitor brightness to 60–80% and set contrast to medium-high. You can also disable power-saving mode.",
+		calAdvicePoor: "Your display contrast is very low. Training may be less effective. Consider: increasing monitor brightness, disabling power-saving mode, or using a different display.",
+		calStartTraining: "Start Training",
 	},
 	history: {
 		title: "Progress",
 		clear: "Clear history",
 	},
 	calibration: {
-		title: "Calibration",
-		description: "We'll measure your contrast sensitivity at different spatial frequencies. This helps personalize your training.",
-		frequencies: "Spatial frequencies",
-		orientations: "Orientations",
-		total: "Total",
-		trials: "trials",
-		point: "Point",
-		threshold: "Threshold",
+		title: "Display Calibration",
+		description: "We'll measure what your display can show. This ensures the training adapts to your screen's capabilities.",
 		next: "Next",
 		step: "Step",
 		// Phase 1: Setup
@@ -107,18 +114,22 @@ export default {
 		gammaHint: "If the checkerboard looks brighter or darker than the gray, your display gamma may be off. This is normal — just match them as close as you can.",
 		gammaConfirm: "Looks equal — Next",
 		resetTypical: "Reset to typical (186)",
-		// Phase 3: Floor
+		// Phase3: Contrast floor
 		floorTitle: "Contrast Floor",
-		floorDesc: "This shows the weakest contrast your training will use. Toggle visibility and adjust gain so the patch is barely visible.",
+		floorDesc: "Increase contrast until you can see the circular pattern. This finds the minimum contrast your display can show.",
+		contrast: "Contrast",
+		floorHint: "Start from 0% and slowly increase. Press Next as soon as you can see the patch.",
+		floorConfirm: "I see it — Next",
 		showPatch: "Show patch",
 		hidePatch: "Hide patch",
-		gain: "Gain",
-		floorHint: "If you can't see the patch at all, increase gain. If it's obviously visible, decrease gain. The goal is 'just barely visible'.",
-		// Phase 4: Thresholds
-		thresholdsTitle: "Measuring Thresholds",
-		thresholdsDesc: "A Gabor patch will appear briefly. Identify its orientation using the keys below. The contrast will adapt to find your personal threshold at each frequency.",
+		// Phase 4: Quality check
+		checkTitle: "Quality Check",
+		checkDesc: "Can you clearly see the stripes in this pattern? Toggle visibility to check.",
+		checkHint: "If the stripes are clearly visible, your display can show high contrast. If not, training will adapt to a lower range.",
+		// Complete
 		completeTitle: "Calibration Complete",
-		completeDesc: "Your profile has been saved. Training will adapt to your personal contrast sensitivity.",
+		completeDesc: "Your display profile has been saved. Training will adapt to your screen.",
+		seeResults: "See Results",
 	},
 	eye: {
 		instructionLeft: "Close your left eye and keep it closed during the session.",

@@ -1,3 +1,5 @@
+import type { CalibrationProfile } from './calibration';
+
 export type OrientKey = 'horiz' | 'diag1' | 'vert' | 'diag2';
 export type Eye = 'both' | 'left' | 'right';
 
@@ -25,7 +27,7 @@ export interface LateralMaskingTrialPatch {
 
 export interface Trial {
   patches: (PatchParams | LateralMaskingTrialPatch)[];
-  correct: OrientKey | number;
+  correct: OrientKey | number | string;
 }
 
 export type GamePhase = 'idle' | 'fixation' | 'stimulus' | 'blank' | 'waiting' | 'feedback' | 'done';
@@ -55,6 +57,7 @@ export interface GameState {
   paused: boolean;
   replayCount: number;
   maxReplays: number;
+  calibrationProfile: CalibrationProfile | null;
 }
 
 export interface HistoryEntry {

@@ -3,6 +3,7 @@
 // Pure TypeScript — no Svelte, no DOM. Pages pass callbacks.
 
 import type { GameState, OrientKey } from "./types";
+import type { CalibrationProfile } from "./calibration";
 import type { SessionState } from "./session";
 import {
     createGameState,
@@ -75,8 +76,9 @@ export function createOrchestrator(
     isSession: boolean,
     callbacks: OrchestratorCallbacks,
     timers: OrchestratorTimers,
+    profile: CalibrationProfile | null = null,
 ): Orchestrator {
-    let gs = createGameState(mode, numTrials, eye as any);
+    let gs = createGameState(mode, numTrials, eye as any, profile);
     let session: SessionState | null = isSession && !isDemo ? createSessionState() : null;
     let isPaused = false;
     let resumeCountdown = 0;
@@ -215,7 +217,7 @@ export function createOrchestrator(
         if (!state.currentTrial) return "";
         const mode = MODES[state.currentMode as keyof typeof MODES];
         if (mode.type === "2afc") {
-            return state.currentTrial.correct === 0 ? "Left" : "Right";
+            return state.currentTrial.correct === 'left' ? '◀ Left' : 'Right ▶';
         }
         const orientKey = state.currentTrial.correct as OrientKey;
         const o = ORIENTATIONS[orientKey];

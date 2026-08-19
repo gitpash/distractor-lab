@@ -5,6 +5,7 @@
     import { ORIENTATIONS, MODES } from "$lib";
     import type { Eye } from "$lib/game/types";
     import { CANVAS_SIZE, renderPatch, renderLateralMasking, showBlank } from "$lib/game/renderer";
+    import { loadProfile } from "$lib/game/calibration";
     import { getAccuracy, getDifficultyDisplay } from "$lib/game/state";
     import { getKeyBinding } from "$lib/game/keyboard";
     import { createOrchestrator } from "$lib/game/orchestrator";
@@ -27,6 +28,8 @@
     const isSession = $derived($page.url.searchParams.get("session") === "true");
     const numTrials = $derived(parseInt($page.url.searchParams.get("trials") || "50"));
     const selectedEye = $derived(($page.url.searchParams.get("eye") || "both") as Eye);
+
+    const calProfile = $derived(loadProfile());
 
     // UI state driven by orchestrator callbacks
     let fixationOpacity = $state(0);
@@ -90,7 +93,7 @@
                     phase,
                     sigma: p.sigma,
                     flankerDistance: p.flankerDistance,
-                    cx: is2afc ? (i === 0 ? 85 : 215) : 150,
+                    cx: 150,
                     cy: 150,
                 });
             } else {
@@ -102,9 +105,9 @@
                     sigma: patch.sigma ?? 30,
                     noise: patch.noise || 0,
                     phase,
-                    cx: is2afc ? (i === 0 ? 85 : 215) : 150,
+                    cx: 150,
                     cy: 150,
-                    radius: is2afc ? 65 : 100,
+                    radius: 100,
                 });
             }
         }
@@ -179,6 +182,7 @@
             setResumeInterval: (fn, ms) => timers.setResumeInterval(fn, ms),
             clearTimers: () => timers.clearTimers(),
         },
+        calProfile,
     );
 
     // ── Input handling ────────────────────────────────────────────────
@@ -194,12 +198,13 @@
     }
 
     function onKeydown(e: KeyboardEvent) {
-        if (e.key === "Escape" || (e.key === " " && !orch.getState().waitingForResponse)) {
+        const code = e.code;
+        if (code === "Escape" || (code === "Space" && !orch.getState().waitingForResponse)) {
             e.preventDefault();
             togglePause();
             return;
         }
-        if (isPaused && (e.key === "Enter" || e.key === " ")) {
+        if (isPaused && (code === "Enter" || code === "Space")) {
             e.preventDefault();
             togglePause();
             return;
@@ -207,7 +212,7 @@
         const gs = orch.getState();
         if (!gs.running || !gs.waitingForResponse || isPaused) return;
         if (!modeConfig) return;
-        if (e.key === "r" || e.key === "R") {
+        if (code === "KeyR") {
             e.preventDefault();
             orch.handleRepeat();
             return;
@@ -275,6 +280,7 @@
                 setResumeInterval: (fn, ms) => timers.setResumeInterval(fn, ms),
                 clearTimers: () => timers.clearTimers(),
             },
+            calProfile,
         );
         orch.start();
     });
@@ -298,6 +304,9 @@
         <div class="eye-instruction">
             {$t(selectedEye === "left" ? "eye.instructionLeft" : "eye.instructionRight")}
         </div>
+    {/if}
+    {#if modeConfig?.instruction && trial <= 1 && !isPaused}
+        <div class="instruction-text">{modeConfig.instruction}</div>
     {/if}
     <div class="hud">
         <span class="hud-stat"
@@ -349,10 +358,11 @@
                 onRepeat={() => orch.handleRepeat()}
                 canRepeat={replayCount < maxReplays}
                 {isIOS}
+                modeType={modeConfig?.type as "4afc" | "2afc"}
             />
         {:else}
             <div class="desktop-controls">
-                <KeyHints layout="answers" onKey={(k) => orch.handleAnswer(k)} {activeKey} />
+                <KeyHints layout="answers" onKey={(k) => orch.handleAnswer(k)} {activeKey} modeType={modeConfig?.type as "4afc" | "2afc"} />
                 <div class="replay-hint">
                     <kbd>R</kbd> replay ({maxReplays - replayCount} left)
                 </div>
@@ -575,5 +585,15 @@
         border-radius: var(--radius);
         margin-bottom: 4px;
         border: 1px solid var(--accent-dim);
+    }
+    .instruction-text {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 6px 12px;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius);
+        margin-bottom: 4px;
+        border: 1px solid var(--border);
     }
 </style>

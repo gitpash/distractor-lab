@@ -3,7 +3,7 @@
 // angle = direction stripes RUN (0°=horizontal, 90°=vertical)
 // =====================================================================
 export const ORIENTATIONS = {
-  horiz: { angle: 0, labelKey: "orientations.horiz", symbol: "⸺" },
+  horiz: { angle: 0, labelKey: "orientations.horiz", symbol: "—" },
   diag1: { angle: 45, labelKey: "orientations.diag1", symbol: "╱" },
   vert: { angle: 90, labelKey: "orientations.vert", symbol: "┃" },
   diag2: { angle: 135, labelKey: "orientations.diag2", symbol: "╲" },
@@ -18,6 +18,8 @@ const randomOrient = (): keyof typeof ORIENTATIONS =>
 function sigmaFromFreq(freq: number, k: number = 1.0): number {
   return k / freq; // λ = 1/freq, σ = k·λ
 }
+
+import { mapDifficultyToContrast, type CalibrationProfile } from "./calibration";
 
 // Lateral mode spatial frequencies (cycles per pixel)
 // Correspond to ~1.5, 3, 4.5, 6, 9, 12 cpd at 50cm/96PPI
@@ -38,14 +40,16 @@ export const MODES = {
     diffStep: 4,
     diffLower: true, // lower value = harder
     diffFormat: (v: number) => v.toFixed(0) + "%",
-    buildTrial(diff: number, phase: number) {
+    instruction: undefined,
+    buildTrial(diff: number, phase: number, profile: CalibrationProfile | null = null) {
       const key = randomOrient();
       const freq = 0.04;
+      const contrast = mapDifficultyToContrast(diff, 2, 100, profile);
       return {
         patches: [
           {
             orient: key,
-            contrast: diff / 100,
+            contrast,
             spatialFreq: freq,
             sigma: sigmaFromFreq(freq),
             noise: 0,
@@ -70,6 +74,7 @@ export const MODES = {
     diffStep: 5,
     diffLower: false, // higher value = harder
     diffFormat: (v: number) => (v / 1000).toFixed(3),
+    instruction: undefined,
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
       const freq = diff / 1000;
@@ -102,6 +107,7 @@ export const MODES = {
     diffStep: 5,
     diffLower: false, // higher value = harder
     diffFormat: (v: number) => v.toFixed(0) + "%",
+    instruction: undefined,
     buildTrial(diff: number, phase: number) {
       const key = randomOrient();
       const freq = 0.04;
@@ -121,44 +127,36 @@ export const MODES = {
     },
   } as const,
   fine: {
-    title: "Fine",
+    title: "Tilt",
     subtitle: "2AFC",
     icon: "⇔",
     wide: false,
-    desc: "Which tilted more?",
+    desc: "Left or right from vertical",
     type: "2afc",
-    diffLabel: "Δ angle",
+    diffLabel: "Tilt angle",
     diffStart: 15,
     diffMin: 1,
     diffMax: 45,
     diffStep: 1,
     diffLower: true, // lower value = harder
     diffFormat: (v: number) => v.toFixed(0) + "°",
+    instruction: "A single patch appears briefly. It is tilted slightly left or right from vertical. Choose the direction.",
     buildTrial(diff: number, phase: number) {
-      const refAngle = ORIENTATIONS[randomOrient()].angle;
-      const targetAngle = refAngle + diff;
       const tiltedLeft = Math.random() < 0.5;
+      const angle = 90 + (tiltedLeft ? -diff : diff); // ±diff from vertical
       const freq = 0.04;
       return {
         patches: [
           {
-            angle: tiltedLeft ? targetAngle : refAngle,
+            angle,
             contrast: 0.8,
             spatialFreq: freq,
             sigma: sigmaFromFreq(freq),
             noise: 0,
-            phase: phase,
-          },
-          {
-            angle: tiltedLeft ? refAngle : targetAngle,
-            contrast: 0.8,
-            spatialFreq: freq,
-            sigma: sigmaFromFreq(freq),
-            noise: 0,
-            phase: phase,
+            phase,
           },
         ],
-        correct: tiltedLeft ? 0 : 1,
+        correct: tiltedLeft ? "left" : "right",
       };
     },
   } as const,
@@ -176,18 +174,20 @@ export const MODES = {
     diffStep: 4,
     diffLower: true,
     diffFormat: (v: number) => v.toFixed(0) + "%",
-    buildTrial(diff: number, phase: number) {
+    instruction: undefined,
+    buildTrial(diff: number, phase: number, profile: CalibrationProfile | null = null) {
       const key = randomOrient();
       const r = Math.random();
       let spatialFreq = 0.04,
         noise = 0;
       if (r < 0.33) spatialFreq = 0.02 + Math.random() * 0.07;
       else if (r < 0.66) noise = 0.15 + Math.random() * 0.5;
+      const contrast = mapDifficultyToContrast(diff, 2, 100, profile);
       return {
         patches: [
           {
             orient: key,
-            contrast: diff / 100,
+            contrast,
             spatialFreq,
             sigma: sigmaFromFreq(spatialFreq),
             noise,
@@ -217,16 +217,18 @@ export const MODES = {
     diffStep: 3,
     diffLower: true, // lower contrast = harder
     diffFormat: (v: number) => v.toFixed(0) + "%",
-    buildTrial(diff: number, phase: number) {
+    instruction: undefined,
+    buildTrial(diff: number, phase: number, profile: CalibrationProfile | null = null) {
       const key = randomOrient();
       // Rotate through frequencies for broad training
       const freq = LATERAL_FREQUENCIES[Math.floor(Math.random() * LATERAL_FREQUENCIES.length)];
+      const targetContrast = mapDifficultyToContrast(diff, 2, 100, profile);
       return {
         patches: [
           {
             type: "lateral" as const,
             orient: key,
-            targetContrast: diff / 100,
+            targetContrast,
             flankerContrast: 0.8,
             spatialFreq: freq,
             sigma: sigmaFromFreq(freq),

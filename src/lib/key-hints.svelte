@@ -7,14 +7,20 @@
         layout?: Layout;
         onKey?: (key: string) => void;
         activeKey?: string;
+        modeType?: "4afc" | "2afc";
     };
-    let { layout = "nav", onKey, activeKey = "" }: Props = $props();
+    let { layout = "nav", onKey, activeKey = "", modeType = "4afc" }: Props = $props();
 
     const answerKeys = [
         { key: "horiz", dir: "horiz" as const, letters: "A/D", labelKey: "orientations.horiz" },
         { key: "diag1", dir: "diag1" as const, letters: "E", labelKey: "orientations.diag1" },
         { key: "vert", dir: "vert" as const, letters: "W/S", labelKey: "orientations.vert" },
         { key: "diag2", dir: "diag2" as const, letters: "Q", labelKey: "orientations.diag2" },
+    ];
+
+    const twoAfcKeys = [
+        { key: "left", label: "orientations.left", letters: "←/A", symbol: "◀" },
+        { key: "right", label: "orientations.right", letters: "→/D", symbol: "▶" },
     ];
 </script>
 
@@ -35,19 +41,35 @@
         </div>
     </div>
 {:else}
-    <div class="key-grid">
-        {#each answerKeys as k}
-            <button
-                class="key-card"
-                class:active={activeKey === k.key}
-                onclick={() => onKey?.(k.key)}
-            >
-                <DirIcon direction={k.dir} size={24} />
-                <span class="key-card-label">{$t(k.labelKey)}</span>
-                <kbd>{k.letters}</kbd>
-            </button>
-        {/each}
-    </div>
+    {#if modeType === "2afc"}
+        <div class="key-grid-2afc">
+            {#each twoAfcKeys as k}
+                <button
+                    class="key-card"
+                    class:active={activeKey === k.key}
+                    onclick={() => onKey?.(k.key)}
+                >
+                    <span class="key-card-symbol">{k.symbol}</span>
+                    <span class="key-card-label">{$t(k.label)}</span>
+                    <kbd>{k.letters}</kbd>
+                </button>
+            {/each}
+        </div>
+    {:else}
+        <div class="key-grid">
+            {#each answerKeys as k}
+                <button
+                    class="key-card"
+                    class:active={activeKey === k.key}
+                    onclick={() => onKey?.(k.key)}
+                >
+                    <DirIcon direction={k.dir} size={24} />
+                    <span class="key-card-label">{$t(k.labelKey)}</span>
+                    <kbd>{k.letters}</kbd>
+                </button>
+            {/each}
+        </div>
+    {/if}
 {/if}
 
 <style>
@@ -92,6 +114,14 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 6px;
+        width: 100%;
+        max-width: 400px;
+        margin-top: 12px;
+    }
+    .key-grid-2afc {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
         width: 100%;
         max-width: 400px;
         margin-top: 12px;
@@ -145,5 +175,13 @@
         min-width: 32px;
         height: 20px;
         font-size: var(--text-xs);
+    }
+    .key-card-symbol {
+        font-size: 24px;
+        color: var(--text-secondary);
+        transition: color var(--duration-normal) ease;
+    }
+    .key-card.active .key-card-symbol {
+        color: var(--accent);
     }
 </style>

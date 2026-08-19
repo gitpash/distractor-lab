@@ -1,8 +1,9 @@
 import type { GameState, OrientKey, Eye } from './types';
+import type { CalibrationProfile } from './calibration';
 import { MODES } from '$lib';
 import { ORIENTATIONS } from '$lib';
 
-export function createGameState(mode: string, numTrials: number, eye: Eye = 'both'): GameState {
+export function createGameState(mode: string, numTrials: number, eye: Eye = 'both', profile: CalibrationProfile | null = null): GameState {
   const modeConfig = MODES[mode as keyof typeof MODES];
   return {
     running: true,
@@ -29,6 +30,7 @@ export function createGameState(mode: string, numTrials: number, eye: Eye = 'bot
     paused: false,
     replayCount: 0,
     maxReplays: 2,
+    calibrationProfile: profile,
   };
 }
 
@@ -47,7 +49,7 @@ export function nextTrial(state: GameState) {
 
   const mode = MODES[state.currentMode as keyof typeof MODES];
   const phase = Math.random() * Math.PI * 2;
-  state.currentTrial = mode.buildTrial(state.difficulty, phase);
+  state.currentTrial = mode.buildTrial(state.difficulty, phase, state.calibrationProfile);
   state.phase = 'fixation';
 }
 
@@ -60,7 +62,7 @@ export function processAnswer(state: GameState, key: string) {
   const mode = MODES[state.currentMode as keyof typeof MODES];
   const isCorrect =
     mode.type === '2afc'
-      ? parseInt(key) === state.currentTrial.correct
+      ? key === state.currentTrial.correct
       : key === state.currentTrial.correct;
 
   state.total++;
@@ -140,7 +142,7 @@ export function getCorrectAnswerLabel(state: GameState): string {
 
   const mode = MODES[state.currentMode as keyof typeof MODES];
   if (mode.type === '2afc') {
-    return state.currentTrial.correct === 0 ? 'Left' : 'Right';
+    return state.currentTrial.correct === 'left' ? '◀ Left' : 'Right ▶';
   }
 
   const orientKey = state.currentTrial.correct as OrientKey;
