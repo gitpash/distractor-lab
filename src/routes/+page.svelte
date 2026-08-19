@@ -10,6 +10,7 @@
     import type { HistoryEntry } from "$lib/game/types";
     import { triggerHaptic, hapticTrigger, getPlatform } from "$lib/game/haptics";
     import { useHaptics } from "$lib/game/hooks";
+    import { loadProfile } from "$lib/game/calibration";
 
     useHaptics();
 
@@ -24,6 +25,17 @@
     let history = $state<HistoryEntry[]>([]);
 
     history = getHistory();
+
+    const calProfile = $derived(loadProfile());
+
+    const qualityLabel = $derived.by(() => {
+        if (!calProfile) return "";
+        switch (calProfile.quality) {
+            case "good": return "results.calQualityGood";
+            case "marginal": return "results.calQualityMarginal";
+            case "poor": return "results.calQualityPoor";
+        }
+    });
 
     const setGameMode = (value: GameMode) => {
         triggerHaptic("nudge");
@@ -41,20 +53,21 @@
     }
 
     function onKeydown(e: KeyboardEvent) {
+        const code = e.code;
         const modes = gameModes as readonly GameMode[];
         const currentIdx = modes.indexOf(selectedGameMode);
 
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        if (code === "ArrowRight" || code === "ArrowDown") {
             e.preventDefault();
             const next = (currentIdx + 1) % modes.length;
             setGameMode(modes[next]);
             focusedIndex = next;
-        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        } else if (code === "ArrowLeft" || code === "ArrowUp") {
             e.preventDefault();
             const prev = (currentIdx - 1 + modes.length) % modes.length;
             setGameMode(modes[prev]);
             focusedIndex = prev;
-        } else if (e.key === "Enter" || e.key === " ") {
+        } else if (code === "Enter" || code === "Space") {
             e.preventDefault();
             startGame();
         }
@@ -73,6 +86,18 @@
     <p class="subtitle">
         {$t("app.subtitle")}
     </p>
+
+    {#if calProfile}
+        <div class="cal-profile {calProfile.quality}">
+            <span class="cal-badge">{$t(qualityLabel)}</span>
+            <span class="cal-range">
+                {$t("results.calContrastRange")}: {(calProfile.contrastFloor * 100).toFixed(0)}% – {(calProfile.contrastCeil * 100).toFixed(0)}%
+            </span>
+            <a class="btn btn-ghost btn-sm" href="/calibration">
+                {$t("actions.recalibrate")}
+            </a>
+        </div>
+    {/if}
 
     <div class="mode-grid" id="modeGrid">
         {#each gameModes as mode}
@@ -208,6 +233,38 @@
             margin-bottom: 32px;
         }
     }
+    /* Calibration profile badge */
+    .cal-profile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .cal-profile.good { border-color: var(--green); }
+    .cal-profile.marginal { border-color: var(--amber); }
+    .cal-profile.poor { border-color: var(--red); }
+    .cal-badge {
+        font-size: var(--text-xs);
+        font-weight: 600;
+    }
+    .cal-profile.good .cal-badge { color: var(--green); }
+    .cal-profile.marginal .cal-badge { color: var(--amber); }
+    .cal-profile.poor .cal-badge { color: var(--red); }
+    .cal-range {
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+    .cal-profile .btn-sm {
+        font-size: var(--text-xs);
+        padding: 2px 8px;
+    }
     .mode-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -216,6 +273,7 @@
     }
     @media (max-width: 600px) {
         .mode-grid {
+            grid-template-columns: repeat(2, 1fr);
             gap: 6px;
             margin-bottom: 12px;
         }
@@ -281,6 +339,7 @@
         gap: 8px;
         align-items: center;
         justify-content: center;
+        flex-wrap: wrap;
     }
     .trials-label {
         display: inline-flex;
@@ -359,8 +418,10 @@
         text-align: center;
         margin-top: 10px;
     }
-    .btn-danger:hover {
-        color: var(--red) !important;
+    @media (hover: hover) and (pointer: fine) {
+        .btn-danger:hover {
+            color: var(--red);
+        }
     }
     .eye-selector {
         display: flex;
@@ -390,9 +451,8 @@
         color: var(--text-on-accent);
     }
     .disclaimer {
-        font-size: 0.65rem;
-        color: var(--text-muted);
-        opacity: 0.6;
+        font-size: var(--text-xs);
+        color: var(--text-secondary);
         margin-top: 24px;
         line-height: 1.4;
         max-width: 400px;

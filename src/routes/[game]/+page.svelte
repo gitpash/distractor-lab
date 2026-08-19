@@ -292,7 +292,7 @@
 
 <div class="game-screen">
     <div id="topBar">
-        <button class="btn btn-ghost pause-btn" onclick={togglePause}>
+        <button class="btn btn-ghost pause-btn" onclick={togglePause} aria-label={isPaused ? $t("game.resume") : $t("game.paused")}>
             {isPaused ? "▶" : "⏸"}
         </button>
         <div class="progress-track">
@@ -523,7 +523,7 @@
         font-weight: 600;
     }
     .resume-countdown {
-        font-size: 3rem;
+        font-size: var(--text-3xl);
         color: var(--accent);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
@@ -557,7 +557,7 @@
         border: 1px solid var(--border);
         border-radius: 3px;
         font-family: inherit;
-        font-size: 0.65rem;
+        font-size: var(--text-xs);
         color: var(--text-secondary);
         line-height: 1;
     }

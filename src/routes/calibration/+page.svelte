@@ -1,22 +1,15 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
-    import { ORIENTATIONS } from "$lib";
-    import { CANVAS_SIZE, renderPatch, showBlank } from "$lib/game/renderer";
+    import { CANVAS_SIZE, showBlank } from "$lib/game/renderer";
     import {
         createCalibrationState,
-        getCurrentCalibrationFreq,
-        getCurrentCalibrationOrient,
-        processCalibrationAnswer,
-        getCalibrationProfile,
         renderGammaCheck,
-        renderFloorCheck,
+        renderFloorPatch,
+        renderCheckPatch,
         estimateGamma,
-        CALIBRATION_FREQUENCIES,
-        CALIBRATION_ORIENTATIONS,
+        buildProfile,
     } from "$lib/game/calibration";
-    import { getKeyBinding } from "$lib/game/keyboard";
-    import KeyHints from "$lib/key-hints.svelte";
     import { triggerHaptic } from "$lib/game/haptics";
     import { useHaptics, useGameTimers } from "$lib/game/hooks";
 
@@ -26,20 +19,14 @@
     let canvasEl: HTMLCanvasElement | null = $state(null);
     let ctx: CanvasRenderingContext2D | null = null;
     let cs = $state(createCalibrationState());
-    let fixationOpacity = $state(0);
-    let showFeedback = $state(false);
-    let feedbackText = $state("");
-    let feedbackType = $state("correct" as "correct" | "wrong");
-    let activeKey = $state("");
 
     const estimatedGamma = $derived(estimateGamma(cs.gammaBrightness));
 
-    const phaseStep = $derived(() => {
+    const phaseStep = $derived.by(() => {
         switch (cs.phase) {
-            case "setup": return "1 / 4";
-            case "gamma": return "2 / 4";
-            case "floor": return "3 / 4";
-            case "thresholds": return "4 / 4";
+            case "setup": return "1 / 3";
+            case "gamma": return "2 / 3";
+            case "floor": return "3 / 3";
             default: return "";
         }
     });
@@ -86,178 +73,91 @@
         triggerHaptic("success");
     }
 
-    // ── Phase 3: Floor check ──────────────────────────────────────
+    // ── Phase 3: Contrast floor ───────────────────────────────────
     function drawFloor() {
         const c = ensureCtx();
         if (!c) return;
         const w = CANVAS_SIZE;
         const h = CANVAS_SIZE;
         const imageData = c.createImageData(w, h);
-        const contrast = cs.floorContrast * cs.floorGain;
-        renderFloorCheck(imageData.data, w, h, contrast, cs.floorVisible);
+        renderFloorPatch(imageData.data, w, h, cs.floorContrast);
         c.putImageData(imageData, 0, 0);
     }
 
-    function toggleFloorVisible() {
-        cs.floorVisible = !cs.floorVisible;
-        drawFloor();
-        triggerHaptic("nudge");
-    }
-
-    function adjustFloorGain(delta: number) {
-        cs.floorGain = Math.max(0.1, Math.min(3.0, cs.floorGain + delta));
+    function adjustFloorContrast(delta: number) {
+        cs.floorContrast = Math.max(0, Math.min(1.0, cs.floorContrast + delta));
         drawFloor();
         triggerHaptic("nudge");
     }
 
     function confirmFloor() {
+        cs.floorFound = true;
         cs.floorComplete = true;
-        cs.phase = "thresholds";
+        cs.phase = "check";
         triggerHaptic("success");
     }
 
-    // ── Phase 4: Threshold measurement ────────────────────────────
-    function renderCurrentTrial() {
+    // ── Quality check → save & go to results ──────────────────────
+    function toggleCheckVisible() {
+        cs.checkVisible = !cs.checkVisible;
+        drawCheck();
+        triggerHaptic("nudge");
+    }
+
+    function drawCheck() {
         const c = ensureCtx();
-        if (!c || !cs.running) return;
+        if (!c) return;
         const w = CANVAS_SIZE;
         const h = CANVAS_SIZE;
         const imageData = c.createImageData(w, h);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            data[i] = data[i + 1] = data[i + 2] = 128;
-            data[i + 3] = 255;
-        }
-
-        const freq = getCurrentCalibrationFreq(cs);
-        const orient = getCurrentCalibrationOrient(cs);
-        const phase = Math.random() * Math.PI * 2;
-
-        renderPatch(data, w, h, {
-            orientation: ORIENTATIONS[orient].angle,
-            contrast: cs.currentThreshold,
-            spatialFreq: freq,
-            sigma: 1.0 / freq,
-            noise: 0,
-            phase,
-            cx: 150,
-            cy: 150,
-            radius: 80,
-        });
-
+        renderCheckPatch(imageData.data, w, h, cs.checkVisible);
         c.putImageData(imageData, 0, 0);
     }
 
-    function calibrationLoop() {
-        if (!cs.running || cs.phase !== "thresholds") return;
-
-        // Step 1: Fixation cross
-        fixationOpacity = 1;
-        drawBlank();
-
-        timers.setLoopTimeout(() => {
-            if (!cs.running || cs.phase !== "thresholds") return;
-
-            // Step 2: Show stimulus
-            fixationOpacity = 0;
-            renderCurrentTrial();
-
-            timers.setLoopTimeout(() => {
-                if (!cs.running || cs.phase !== "thresholds") return;
-
-                // Step 3: Blank (ISI)
-                drawBlank();
-
-                timers.setLoopTimeout(() => {
-                    if (!cs.running || cs.phase !== "thresholds") return;
-
-                    // Step 4: Waiting for response
-                    cs.waitingForResponse = true;
-                }, cs.isi);
-            }, cs.stimulusDuration);
-        }, 300);
-    }
-
-    function handleAnswer(key: string) {
-        if (!cs.waitingForResponse || !cs.running) return;
-        cs.waitingForResponse = false;
-
-        const orient = getCurrentCalibrationOrient(cs);
-        const isCorrect = key === orient;
-
-        if (isCorrect) {
-            feedbackText = "✓";
-            feedbackType = "correct";
-            triggerHaptic("success");
-        } else {
-            feedbackText = "✗";
-            feedbackType = "wrong";
-            triggerHaptic("error");
-        }
-        showFeedback = true;
-
-        const { allComplete } = processCalibrationAnswer(cs, isCorrect);
-
-        timers.setLoopTimeout(() => {
-            showFeedback = false;
-            if (allComplete) {
-                endCalibration();
-            } else {
-                calibrationLoop();
-            }
-        }, 500);
-    }
-
-    function onKeydown(e: KeyboardEvent) {
-        if (cs.phase === "gamma") {
-            if (e.key === "ArrowLeft" || e.key === "a") { e.preventDefault(); adjustGamma(-5); }
-            else if (e.key === "ArrowRight" || e.key === "d") { e.preventDefault(); adjustGamma(5); }
-            else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); confirmGamma(); }
-            return;
-        }
-        if (cs.phase === "floor") {
-            if (e.key === "ArrowLeft" || e.key === "a") { e.preventDefault(); adjustFloorGain(-0.1); }
-            else if (e.key === "ArrowRight" || e.key === "d") { e.preventDefault(); adjustFloorGain(0.1); }
-            else if (e.key === " ") { e.preventDefault(); toggleFloorVisible(); }
-            else if (e.key === "Enter") { e.preventDefault(); confirmFloor(); }
-            return;
-        }
-        if (cs.phase === "thresholds") {
-            if (!cs.waitingForResponse) return;
-            const key = getKeyBinding(e, "4afc");
-            if (!key) return;
-            e.preventDefault();
-            activeKey = key;
-            setTimeout(() => { activeKey = ""; }, 300);
-            handleAnswer(key);
-        }
-    }
-
-    function endCalibration() {
-        cs.running = false;
-        drawBlank();
-        const profile = getCalibrationProfile(cs);
-        sessionStorage.setItem('calibrationProfile', JSON.stringify(profile));
+    function confirmCheck() {
+        cs.checkComplete = true;
+        cs.profile = buildProfile(cs);
+        sessionStorage.setItem("calibrationProfile", JSON.stringify(cs.profile));
+        triggerHaptic("success");
         goto("/results?mode=calibration");
     }
 
-    // Draw when canvas appears or phase changes
-    // Only depends on phase — calibrationLoop manages its own async rendering
+    // ── Keyboard ──────────────────────────────────────────────────
+    function onKeydown(e: KeyboardEvent) {
+        const code = e.code;
+        if (cs.phase === "gamma") {
+            if (code === "ArrowLeft" || code === "KeyA") { e.preventDefault(); adjustGamma(-5); }
+            else if (code === "ArrowRight" || code === "KeyD") { e.preventDefault(); adjustGamma(5); }
+            else if (code === "Enter" || code === "Space") { e.preventDefault(); confirmGamma(); }
+            return;
+        }
+        if (cs.phase === "floor") {
+            if (code === "ArrowLeft" || code === "KeyA") { e.preventDefault(); adjustFloorContrast(-0.02); }
+            else if (code === "ArrowRight" || code === "KeyD") { e.preventDefault(); adjustFloorContrast(0.02); }
+            else if (code === "Enter" || code === "Space") { e.preventDefault(); confirmFloor(); }
+            return;
+        }
+        if (cs.phase === "check") {
+            if (code === "Space" || code === "ArrowRight" || code === "KeyD") { e.preventDefault(); toggleCheckVisible(); }
+            else if (code === "Enter") { e.preventDefault(); confirmCheck(); }
+            return;
+        }
+    }
+
+    // ── Phase drawing ─────────────────────────────────────────────
     let lastDrawnPhase = "";
     $effect(() => {
         const phase = cs.phase;
         if (phase === lastDrawnPhase) return;
         lastDrawnPhase = phase;
 
-        // Small delay to let canvas mount
         const timer = setTimeout(() => {
             if (phase === "gamma") {
                 drawGamma();
             } else if (phase === "floor") {
                 drawFloor();
-            } else if (phase === "thresholds") {
-                drawBlank();
-                calibrationLoop();
+            } else if (phase === "check") {
+                drawCheck();
             } else {
                 drawBlank();
             }
@@ -274,7 +174,7 @@
 <div class="calibration-screen">
     {#if cs.phase === "setup"}
         <div class="phase-content">
-            <div class="phase-step">{$t("calibration.step")} {phaseStep()}</div>
+            <div class="phase-step">{$t("calibration.step")} {phaseStep}</div>
             <h2>{$t("calibration.title")}</h2>
             <p class="phase-desc">{$t("calibration.setupDesc")}</p>
 
@@ -309,7 +209,7 @@
 
     {:else if cs.phase === "gamma"}
         <div class="phase-content">
-            <div class="phase-step">{$t("calibration.step")} {phaseStep()}</div>
+            <div class="phase-step">{$t("calibration.step")} {phaseStep}</div>
             <h2>{$t("calibration.gammaTitle")}</h2>
             <p class="phase-desc">{$t("calibration.gammaDesc")}</p>
 
@@ -347,7 +247,7 @@
 
     {:else if cs.phase === "floor"}
         <div class="phase-content">
-            <div class="phase-step">{$t("calibration.step")} {phaseStep()}</div>
+            <div class="phase-step">{$t("calibration.step")} {phaseStep}</div>
             <h2>{$t("calibration.floorTitle")}</h2>
             <p class="phase-desc">{$t("calibration.floorDesc")}</p>
 
@@ -361,69 +261,45 @@
             </div>
 
             <div class="floor-controls">
-                <button class="btn btn-ghost" onclick={toggleFloorVisible}>
-                    {cs.floorVisible ? $t("calibration.hidePatch") : $t("calibration.showPatch")}
-                </button>
-                <span class="floor-gain">{$t("calibration.gain")}: {cs.floorGain.toFixed(1)}×</span>
+                <span class="floor-contrast">{$t("calibration.contrast")}: {(cs.floorContrast * 100).toFixed(0)}%</span>
                 <div class="floor-buttons">
-                    <button class="btn btn-ghost" onclick={() => adjustFloorGain(-0.2)}>−</button>
-                    <button class="btn btn-ghost" onclick={() => adjustFloorGain(0.2)}>+</button>
+                    <button class="btn btn-ghost" onclick={() => adjustFloorContrast(-0.02)}>−</button>
+                    <button class="btn btn-ghost" onclick={() => adjustFloorContrast(0.02)}>+</button>
                 </div>
             </div>
 
             <p class="floor-hint">{$t("calibration.floorHint")}</p>
 
             <button class="btn btn-primary" onclick={confirmFloor}>
-                {$t("calibration.next")}
+                {$t("calibration.floorConfirm")}
             </button>
         </div>
 
-    {:else if cs.phase === "thresholds"}
+    {:else if cs.phase === "check"}
         <div class="phase-content">
-            <div class="phase-step">{$t("calibration.step")} {phaseStep()}</div>
-            <h2>{$t("calibration.thresholdsTitle")}</h2>
-            <p class="phase-desc">{$t("calibration.thresholdsDesc")}</p>
-        </div>
+            <div class="phase-step">{$t("calibration.step")} {phaseStep}</div>
+            <h2>{$t("calibration.checkTitle")}</h2>
+            <p class="phase-desc">{$t("calibration.checkDesc")}</p>
 
-        <div class="overall-progress">
-            <div class="overall-dots">
-                <span class="dot done">✓</span>
-                <span class="dot done">✓</span>
-                <span class="dot done">✓</span>
-                <span class="dot active">4</span>
+            <div class="canvas-wrap">
+                <canvas
+                    bind:this={canvasEl}
+                    width={CANVAS_SIZE}
+                    height={CANVAS_SIZE}
+                    id="calCanvas"
+                ></canvas>
             </div>
-        </div>
 
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {(cs.currentTrial / cs.totalTrials) * 100}%"></div>
-        </div>
-        <div class="stats">
-            <span>{$t("calibration.point")}: {cs.currentFreqIndex + 1}/{CALIBRATION_FREQUENCIES.length}</span>
-            <span>{$t("calibration.threshold")}: {(cs.currentThreshold * 100).toFixed(0)}%</span>
-        </div>
+            <div class="check-controls">
+                <button class="btn btn-ghost" onclick={toggleCheckVisible}>
+                    {cs.checkVisible ? $t("calibration.hidePatch") : $t("calibration.showPatch")}
+                </button>
+            </div>
 
-        <div class="canvas-wrap">
-            <canvas
-                bind:this={canvasEl}
-                width={CANVAS_SIZE}
-                height={CANVAS_SIZE}
-                id="calCanvas"
-            ></canvas>
-            <div class="fixation" style="opacity: {fixationOpacity}"></div>
-            {#if showFeedback}
-                <div class="feedback {feedbackType}">{feedbackText}</div>
-            {/if}
-        </div>
+            <p class="check-hint">{$t("calibration.checkHint")}</p>
 
-        <KeyHints layout="answers" {activeKey} />
-
-    {:else if cs.phase === "complete"}
-        <div class="phase-content">
-            <div class="phase-step">✓</div>
-            <h2>{$t("calibration.completeTitle")}</h2>
-            <p>{$t("calibration.completeDesc")}</p>
-            <button class="btn btn-primary" onclick={() => goto("/")}>
-                {$t("actions.home")}
+            <button class="btn btn-primary" onclick={confirmCheck}>
+                {$t("calibration.next")}
             </button>
         </div>
     {/if}
@@ -544,8 +420,8 @@
         font-size: var(--text-sm);
     }
     .btn-sm {
-        font-size: var(--text-xs) !important;
-        padding: 4px 10px !important;
+        font-size: var(--text-xs);
+        padding: 4px 10px;
         opacity: 0.7;
     }
     .gamma-hint {
@@ -561,7 +437,7 @@
         gap: 12px;
         flex-wrap: wrap;
     }
-    .floor-gain {
+    .floor-contrast {
         font-size: var(--text-sm);
         color: var(--text-muted);
         font-variant-numeric: tabular-nums;
@@ -579,97 +455,15 @@
         margin: 12px 0 16px;
         line-height: 1.4;
     }
-    .progress-bar {
-        width: 100%;
-        height: 4px;
-        background: var(--bg-tertiary);
-        border-radius: 2px;
-        overflow: hidden;
-    }
-    .progress-fill {
-        height: 100%;
-        background: var(--accent);
-        transition: width var(--duration-slow) ease;
-    }
-    .overall-progress {
+    .check-controls {
         display: flex;
         justify-content: center;
         margin-bottom: 8px;
     }
-    .overall-dots {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-    .dot {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .check-hint {
         font-size: var(--text-xs);
-        font-weight: 600;
-    }
-    .dot.done {
-        background: var(--accent);
-        color: var(--text-on-accent);
-    }
-    .dot.active {
-        background: var(--bg-tertiary);
-        border: 2px solid var(--accent);
-        color: var(--accent);
-    }
-    .stats {
-        display: flex;
-        gap: 20px;
-        font-size: var(--text-sm);
         color: var(--text-muted);
-    }
-    .fixation {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        transition: opacity var(--duration-fast) ease-out;
-    }
-    .fixation::before, .fixation::after {
-        content: "";
-        position: absolute;
-        background: #fff;
-    }
-    .fixation::before {
-        width: 2px;
-        height: 16px;
-        left: 9px;
-        top: 2px;
-    }
-    .fixation::after {
-        width: 16px;
-        height: 2px;
-        left: 2px;
-        top: 9px;
-    }
-    .feedback {
-        position: absolute;
-        bottom: 12px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: var(--text-base);
-        font-weight: 600;
-        padding: 5px 14px;
-        pointer-events: none;
-        z-index: 10;
-    }
-    .feedback.correct {
-        background: var(--green);
-        color: #000;
-    }
-    .feedback.wrong {
-        background: var(--red);
-        color: #fff;
+        margin: 12px 0 16px;
+        line-height: 1.4;
     }
 </style>

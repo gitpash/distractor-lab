@@ -80,8 +80,9 @@
         background: var(--bg-secondary);
         color: var(--text-primary);
         border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
         padding: 4px 8px;
-        font-size: 12px;
+        font-size: var(--text-sm);
         font-family: inherit;
         z-index: 100;
     }
@@ -98,8 +99,10 @@
         text-decoration: none;
         transition: color 0.15s;
     }
-    nav.breadcrumbs a:hover {
-        color: var(--accent);
+    @media (hover: hover) and (pointer: fine) {
+        nav.breadcrumbs a:hover {
+            color: var(--accent);
+        }
     }
     nav.breadcrumbs a[aria-disabled="true"] {
         color: var(--text-muted);

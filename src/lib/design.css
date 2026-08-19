@@ -19,6 +19,7 @@
     --accent: #00e5ff;
     --accent-dim: #0080a0;
     --accent-glow: rgba(0, 229, 255, 0.3);
+    --text-on-accent: #fff;
 
     /* Semantic */
     --green: #00ff88;
@@ -34,6 +35,16 @@
     --radius: 6px;
     --radius-sm: 4px;
 
+    /* Spacing scale (4px base) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
     /* Motion */
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -48,6 +59,9 @@
     --text-md: 0.875rem;
     --text-lg: 1rem;
     --text-xl: 1.5rem;
+    --text-2xl: 2rem;
+    --text-3xl: 3rem;
+    --text-4xl: 3.5rem;
 }
 
 /* ── Reset ── */
@@ -55,6 +69,16 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
 }
 
 body {
@@ -189,5 +213,12 @@ kbd:active {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+/* ── Reduced transparency ── */
+@media (prefers-reduced-transparency: reduce) {
+    .canvas-wrap {
+        background: var(--bg-primary);
     }
 }

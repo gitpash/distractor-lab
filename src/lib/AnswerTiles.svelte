@@ -27,11 +27,13 @@
             class="side-btn"
             onclick={onRepeat}
             disabled={!canRepeat}
+            aria-label="Replay"
             {@attach isIOS ? hapticTrigger : undefined}
         >↺</button>
         <button
             class="side-btn"
             onclick={onSkip}
+            aria-label="Skip"
             {@attach isIOS ? hapticTrigger : undefined}
         >⏭</button>
     </div>
@@ -97,7 +99,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: var(--text-lg);
         transition: transform var(--duration-fast) ease-out, background var(--duration-normal) ease, border-color var(--duration-normal) ease;
         font-family: inherit;
     }
@@ -172,6 +174,11 @@
         font-weight: 600;
         font-family: inherit;
         transition: transform var(--duration-fast) ease-out, background var(--duration-normal) ease, border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .btn-2afc:hover {
+            border-color: var(--accent-dim);
+        }
     }
     .btn-2afc:active {
         transform: scale(0.97);
