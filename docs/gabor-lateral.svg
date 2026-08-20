@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+  <defs>
+    <filter id="blur3"><feGaussianBlur stdDeviation="0.8"/></filter>
+  </defs>
+  <rect width="360" height="140" fill="#0a0e14"/>
+
+  <!-- Flanker left (high contrast) -->
+  <g transform="translate(80, 60)" opacity="0.85">
+    <clipPath id="fl"><circle r="28"/></clipPath>
+    <g clip-path="url(#fl)" filter="url(#blur3)">
+      <rect x="-30" y="-30" width="60" height="60" fill="#808080"/>
+      <rect x="-30" y="-18" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <rect x="-30" y="-10" width="60" height="4" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-30" y="-2" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <rect x="-30" y="6" width="60" height="4" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-30" y="14" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <radialGradient id="gf-fl" cx="50%" cy="50%" r="50%">
+        <stop offset="55%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="28" fill="url(#gf-fl)"/>
+    </g>
+    <circle r="28" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="44" text-anchor="middle" font-family="monospace" font-size="9" fill="#3a5a6a">flanker</text>
+  </g>
+
+  <!-- Target (low contrast) -->
+  <g transform="translate(180, 60)">
+    <clipPath id="ct"><circle r="28"/></clipPath>
+    <g clip-path="url(#ct)" filter="url(#blur3)">
+      <rect x="-30" y="-30" width="60" height="60" fill="#808080"/>
+      <rect x="-30" y="-18" width="60" height="4" fill="#999" opacity="0.8"/>
+      <rect x="-30" y="-10" width="60" height="4" fill="#666" opacity="0.8"/>
+      <rect x="-30" y="-2" width="60" height="4" fill="#999" opacity="0.8"/>
+      <rect x="-30" y="6" width="60" height="4" fill="#666" opacity="0.8"/>
+      <rect x="-30" y="14" width="60" height="4" fill="#999" opacity="0.8"/>
+      <radialGradient id="gf-t" cx="50%" cy="50%" r="50%">
+        <stop offset="55%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="28" fill="url(#gf-t)"/>
+    </g>
+    <circle r="28" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.6"/>
+    <text y="44" text-anchor="middle" font-family="monospace" font-size="9" fill="#00e5ff" opacity="0.7">target</text>
+  </g>
+
+  <!-- Flanker right (high contrast) -->
+  <g transform="translate(280, 60)" opacity="0.85">
+    <clipPath id="fr"><circle r="28"/></clipPath>
+    <g clip-path="url(#fr)" filter="url(#blur3)">
+      <rect x="-30" y="-30" width="60" height="60" fill="#808080"/>
+      <rect x="-30" y="-18" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <rect x="-30" y="-10" width="60" height="4" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-30" y="-2" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <rect x="-30" y="6" width="60" height="4" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-30" y="14" width="60" height="4" fill="#ffffff" opacity="0.95"/>
+      <radialGradient id="gf-fr" cx="50%" cy="50%" r="50%">
+        <stop offset="55%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="28" fill="url(#gf-fr)"/>
+    </g>
+    <circle r="28" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="44" text-anchor="middle" font-family="monospace" font-size="9" fill="#3a5a6a">flanker</text>
+  </g>
+
+  <!-- Distance annotation -->
+  <line x1="80" y1="100" x2="280" y2="100" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="180" y="118" text-anchor="middle" font-family="monospace" font-size="10" fill="#3a5a6a">4λ spacing</text>
+
+  <!-- Title -->
+  <text x="180" y="138" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#5a6a7a">Polat &amp; Sagi lateral masking paradigm</text>
+</svg>

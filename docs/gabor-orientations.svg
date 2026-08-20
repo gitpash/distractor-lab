@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" width="420" height="120">
+  <defs>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="0.8"/>
+    </filter>
+  </defs>
+  <rect width="420" height="120" fill="#0a0e14"/>
+
+  <!-- 0° Horizontal -->
+  <g transform="translate(60, 60)">
+    <clipPath id="c0"><circle r="42"/></clipPath>
+    <g clip-path="url(#c0)" filter="url(#soft)">
+      <rect x="-44" y="-44" width="88" height="88" fill="#808080"/>
+      <rect x="-44" y="-30" width="88" height="5" fill="#00e5ff" opacity="0.9"/>
+      <rect x="-44" y="-20" width="88" height="5" fill="#0a0e14" opacity="0.9"/>
+      <rect x="-44" y="-10" width="88" height="5" fill="#00e5ff" opacity="0.9"/>
+      <rect x="-44" y="0" width="88" height="5" fill="#0a0e14" opacity="0.9"/>
+      <rect x="-44" y="10" width="88" height="5" fill="#00e5ff" opacity="0.9"/>
+      <rect x="-44" y="20" width="88" height="5" fill="#0a0e14" opacity="0.9"/>
+      <rect x="-44" y="30" width="88" height="5" fill="#00e5ff" opacity="0.9"/>
+      <!-- Gaussian fade edges -->
+      <radialGradient id="gf0" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="42" fill="url(#gf0)"/>
+    </g>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="58" text-anchor="middle" font-family="monospace" font-size="11" fill="#5a6a7a">0°</text>
+  </g>
+
+  <!-- 45° Diagonal -->
+  <g transform="translate(170, 60)">
+    <clipPath id="c45"><circle r="42"/></clipPath>
+    <g clip-path="url(#c45)" filter="url(#soft)">
+      <rect x="-50" y="-50" width="100" height="100" fill="#808080" transform="rotate(45)"/>
+      <rect x="-50" y="-30" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="-20" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="-10" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="0" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="10" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="20" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(45)"/>
+      <rect x="-50" y="30" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(45)"/>
+      <radialGradient id="gf45" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="42" fill="url(#gf45)"/>
+    </g>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="58" text-anchor="middle" font-family="monospace" font-size="11" fill="#5a6a7a">45°</text>
+  </g>
+
+  <!-- 90° Vertical -->
+  <g transform="translate(280, 60)">
+    <clipPath id="c90"><circle r="42"/></clipPath>
+    <g clip-path="url(#c90)" filter="url(#soft)">
+      <rect x="-44" y="-44" width="88" height="88" fill="#808080"/>
+      <rect x="-30" y="-44" width="5" height="88" fill="#00e5ff" opacity="0.9"/>
+      <rect x="-20" y="-44" width="5" height="88" fill="#0a0e14" opacity="0.9"/>
+      <rect x="-10" y="-44" width="5" height="88" fill="#00e5ff" opacity="0.9"/>
+      <rect x="0" y="-44" width="5" height="88" fill="#0a0e14" opacity="0.9"/>
+      <rect x="10" y="-44" width="5" height="88" fill="#00e5ff" opacity="0.9"/>
+      <rect x="20" y="-44" width="5" height="88" fill="#0a0e14" opacity="0.9"/>
+      <rect x="30" y="-44" width="5" height="88" fill="#00e5ff" opacity="0.9"/>
+      <radialGradient id="gf90" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="42" fill="url(#gf90)"/>
+    </g>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="58" text-anchor="middle" font-family="monospace" font-size="11" fill="#5a6a7a">90°</text>
+  </g>
+
+  <!-- 135° Diagonal -->
+  <g transform="translate(390, 60)">
+    <clipPath id="c135"><circle r="42"/></clipPath>
+    <g clip-path="url(#c135)" filter="url(#soft)">
+      <rect x="-50" y="-50" width="100" height="100" fill="#808080" transform="rotate(-45)"/>
+      <rect x="-50" y="-30" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="-20" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="-10" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="0" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="10" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="20" width="100" height="5" fill="#0a0e14" opacity="0.9" transform="rotate(-45)"/>
+      <rect x="-50" y="30" width="100" height="5" fill="#00e5ff" opacity="0.9" transform="rotate(-45)"/>
+      <radialGradient id="gf135" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="#0a0e14" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
+      </radialGradient>
+      <circle r="42" fill="url(#gf135)"/>
+    </g>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
+    <text y="58" text-anchor="middle" font-family="monospace" font-size="11" fill="#5a6a7a">135°</text>
+  </g>
+</svg>
