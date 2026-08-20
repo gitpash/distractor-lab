@@ -1,58 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 130" width="520" height="130">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" width="520" height="140">
   <defs>
     <filter id="blur2"><feGaussianBlur stdDeviation="1"/></filter>
   </defs>
-  <rect width="520" height="130" fill="#0a0e14"/>
+  <rect width="520" height="140" fill="#0a0e14"/>
 
   <!-- Low contrast -->
-  <g transform="translate(130, 55)">
-    <clipPath id="lc"><circle r="48"/></clipPath>
+  <g transform="translate(130, 48)">
+    <clipPath id="lc"><circle r="42"/></clipPath>
     <g clip-path="url(#lc)" filter="url(#blur2)">
-      <rect x="-50" y="-50" width="100" height="100" fill="#808080"/>
-      <!-- Low contrast stripes: subtle difference -->
-      <rect x="-50" y="-30" width="100" height="6" fill="#8a8a8a" opacity="0.8"/>
-      <rect x="-50" y="-18" width="100" height="6" fill="#767676" opacity="0.8"/>
-      <rect x="-50" y="-6" width="100" height="6" fill="#8a8a8a" opacity="0.8"/>
-      <rect x="-50" y="6" width="100" height="6" fill="#767676" opacity="0.8"/>
-      <rect x="-50" y="18" width="100" height="6" fill="#8a8a8a" opacity="0.8"/>
-      <rect x="-50" y="30" width="100" height="6" fill="#767676" opacity="0.8"/>
+      <rect x="-44" y="-44" width="88" height="88" fill="#808080"/>
+      <rect x="-44" y="-26" width="88" height="5" fill="#8a8a8a" opacity="0.8"/>
+      <rect x="-44" y="-16" width="88" height="5" fill="#767676" opacity="0.8"/>
+      <rect x="-44" y="-6" width="88" height="5" fill="#8a8a8a" opacity="0.8"/>
+      <rect x="-44" y="4" width="88" height="5" fill="#767676" opacity="0.8"/>
+      <rect x="-44" y="14" width="88" height="5" fill="#8a8a8a" opacity="0.8"/>
+      <rect x="-44" y="24" width="88" height="5" fill="#767676" opacity="0.8"/>
       <radialGradient id="gf-lc" cx="50%" cy="50%" r="50%">
         <stop offset="55%" stop-color="#0a0e14" stop-opacity="0"/>
         <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
       </radialGradient>
-      <circle r="48" fill="url(#gf-lc)"/>
+      <circle r="42" fill="url(#gf-lc)"/>
     </g>
-    <circle r="48" fill="none" stroke="#1a2a3a" stroke-width="1"/>
-    <text y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#5a6a7a">Low contrast — hard</text>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
   </g>
+  <text x="130" y="102" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#5a6a7a">Low contrast — hard</text>
+  <text x="130" y="120" text-anchor="middle" font-family="monospace" font-size="10" fill="#3a5a6a">~5% ΔL</text>
 
   <!-- Arrow -->
-  <path d="M 240 55 L 280 55" stroke="#2a3a4a" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 235 48 L 285 48" stroke="#2a3a4a" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
   <defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#2a3a4a"/></marker></defs>
 
   <!-- High contrast -->
-  <g transform="translate(390, 55)">
-    <clipPath id="hc"><circle r="48"/></clipPath>
+  <g transform="translate(390, 48)">
+    <clipPath id="hc"><circle r="42"/></clipPath>
     <g clip-path="url(#hc)" filter="url(#blur2)">
-      <rect x="-50" y="-50" width="100" height="100" fill="#808080"/>
-      <!-- High contrast stripes: bold difference -->
-      <rect x="-50" y="-30" width="100" height="6" fill="#ffffff" opacity="0.95"/>
-      <rect x="-50" y="-18" width="100" height="6" fill="#0a0a0a" opacity="0.95"/>
-      <rect x="-50" y="-6" width="100" height="6" fill="#ffffff" opacity="0.95"/>
-      <rect x="-50" y="6" width="100" height="6" fill="#0a0a0a" opacity="0.95"/>
-      <rect x="-50" y="18" width="100" height="6" fill="#ffffff" opacity="0.95"/>
-      <rect x="-50" y="30" width="100" height="6" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-44" y="-44" width="88" height="88" fill="#808080"/>
+      <rect x="-44" y="-26" width="88" height="5" fill="#ffffff" opacity="0.95"/>
+      <rect x="-44" y="-16" width="88" height="5" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-44" y="-6" width="88" height="5" fill="#ffffff" opacity="0.95"/>
+      <rect x="-44" y="4" width="88" height="5" fill="#0a0a0a" opacity="0.95"/>
+      <rect x="-44" y="14" width="88" height="5" fill="#ffffff" opacity="0.95"/>
+      <rect x="-44" y="24" width="88" height="5" fill="#0a0a0a" opacity="0.95"/>
       <radialGradient id="gf-hc" cx="50%" cy="50%" r="50%">
         <stop offset="55%" stop-color="#0a0e14" stop-opacity="0"/>
         <stop offset="100%" stop-color="#0a0e14" stop-opacity="1"/>
       </radialGradient>
-      <circle r="48" fill="url(#gf-hc)"/>
+      <circle r="42" fill="url(#gf-hc)"/>
     </g>
-    <circle r="48" fill="none" stroke="#1a2a3a" stroke-width="1"/>
-    <text y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#5a6a7a">High contrast — easy</text>
+    <circle r="42" fill="none" stroke="#1a2a3a" stroke-width="1"/>
   </g>
-
-  <!-- Labels -->
-  <text x="130" y="120" text-anchor="middle" font-family="monospace" font-size="10" fill="#3a5a6a">~5% ΔL</text>
+  <text x="390" y="102" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#5a6a7a">High contrast — easy</text>
   <text x="390" y="120" text-anchor="middle" font-family="monospace" font-size="10" fill="#3a5a6a">~80% ΔL</text>
 </svg>
