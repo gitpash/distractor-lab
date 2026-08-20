@@ -3,7 +3,7 @@
 **Source**: https://pmc.ncbi.nlm.nih.gov/articles/PMC8464827/
 **DOI**: 10.3390/brainsci11091181
 **Date Analyzed**: 2026-08-19
-**Relevance**: **high** — directly uses Gabor patches for visual training, same paradigm as gabor-svelte
+**Relevance**: **high** — directly uses Gabor patches for visual training, same paradigm as distractor-lab
 
 ------
 
@@ -13,13 +13,13 @@
 
 | Criterion | Assessment |
 |-----------|------------|
-| Relevance to gabor-svelte | high — directly uses Gabor patches for visual training |
+| Relevance to distractor-lab | high — directly uses Gabor patches for visual training |
 | Study design quality | strong — RCT, n=30, double-masked, pre-registered |
 | Replication status | single study |
 | Effect size | significant: p=0.02 at 6 cpd, p=0.01 at 12 cpd, p=0.02 at 1.5 cpd |
 | Actionable? | yes — multi-frequency training mode, Best PEST, session persistence |
 
-**Decision rationale**: Well-designed RCT using the same paradigm as gabor-svelte. Significant CS improvements at frequencies we cover. Directly actionable.
+**Decision rationale**: Well-designed RCT using the same paradigm as distractor-lab. Significant CS improvements at frequencies we cover. Directly actionable.
 
 **If defer/reject**: N/A — accepted.
 
@@ -35,7 +35,7 @@ Piñero et al. (2021) conducted a blinded randomized placebo-controlled trial (n
 
 ### Stimulus
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Spatial frequency | 0.5, 1.0, 1.5, 3.0, 4.5, 6.0 cpd | 1.5–12 cpd (0.015–0.12 cycles/px) | We miss very low freq (0.5–1.0 cpd). Paper tests 6 frequencies; we use 1 per trial |
 | Contrast range | Near threshold (adaptive, Best PEST) | Calibration-mapped (2–100%) | Both adaptive; paper starts 10% above measured threshold |
@@ -51,7 +51,7 @@ Piñero et al. (2021) conducted a blinded randomized placebo-controlled trial (n
 
 ### Training Protocol
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Session duration | 30 min/day | 30 min/session | ✅ Match |
 | Sessions/day | 1 | 1 | ✅ Match |
@@ -126,7 +126,7 @@ Distance CS (CSV-1000, logCS):
 
 ---
 
-## Comparison with gabor-svelte
+## Comparison with distractor-lab
 
 ### What We Already Have
 

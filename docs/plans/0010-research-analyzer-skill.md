@@ -2,13 +2,13 @@
 
 ## Context
 
-gabor-svelte is a visual perception trainer based on Gabor patches. The user wants a skill that can analyze scientific papers (clinical trials, psychophysics studies, vision science research) and extract practical, actionable insights relevant to the app's implementation.
+distractor-lab is a visual perception trainer based on Gabor patches. The user wants a skill that can analyze scientific papers (clinical trials, psychophysics studies, vision science research) and extract practical, actionable insights relevant to the app's implementation.
 
 The skill should take a paper URL (PMC, PubMed, arXiv, journal sites) or a local PDF/markdown file, parse it, and produce a structured analysis covering:
 
 1. **Methodology parameters** — spatial frequencies, contrast levels, stimulus durations, viewing distances, sample sizes, training protocols
 2. **Experimental findings** — what worked, what didn't, effect sizes, statistical significance
-3. **Practical recommendations** — what can be borrowed for gabor-svelte's game modes, calibration, adaptive staircase, training schedules
+3. **Practical recommendations** — what can be borrowed for distractor-lab's game modes, calibration, adaptive staircase, training schedules
 
 ## Why This Matters
 
@@ -33,7 +33,7 @@ Published research (like the PMC8464827 trial) uses similar Gabor patch paradigm
 1. **Input acquisition** — fetch paper from URL (webfetch) or read local file
 2. **Content extraction** — parse the paper into structured sections (abstract, methods, results, discussion)
 3. **Parameter extraction** — pull out specific numerical values relevant to Gabor patch training
-4. **Gap analysis** — compare extracted parameters against gabor-svelte's current implementation
+4. **Gap analysis** — compare extracted parameters against distractor-lab's current implementation
 5. **Recommendation generation** — produce actionable suggestions for new modes, parameter ranges, or protocol changes
 6. **Output** — write analysis to `docs/research/<slug>.md` as a reusable reference
 
@@ -82,7 +82,7 @@ Published research (like the PMC8464827 trial) uses similar Gabor patch paradigm
 **Relevance**: <high/medium/low>
 
 ## Key Parameters
-| Parameter | Paper Value | gabor-svelte Current | Gap |
+| Parameter | Paper Value | distractor-lab Current | Gap |
 |-----------|-------------|---------------------|-----|
 | Spatial freq | X cpd | Y cycles/px | ... |
 | Contrast range | X–Y% | calibration-mapped | ... |
@@ -141,7 +141,7 @@ From the paper we already fetched, key extractable parameters:
 ## Validation
 - `bun run check && bun run test && bun run build`
 - Skill produces readable, structured analysis
-- Recommendations map to specific gabor-svelte code changes
+- Recommendations map to specific distractor-lab code changes
 
 ---
 
@@ -171,7 +171,7 @@ The research system has three layers:
 │  Skill: .opencode/skills/research-*     │
 │  - Extraction methodology              │
 │  - Checklist of parameters              │
-│  - Comparison with gabor-svelte         │
+│  - Comparison with distractor-lab         │
 │  - Output template                      │
 └──────────────┬──────────────────────────┘
                │

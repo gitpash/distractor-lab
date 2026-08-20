@@ -2,7 +2,7 @@
 description: Analyze structural concerns and produce an ADR or plan.
 agent: build
 ---
-The user has structural concerns about gabor-svelte. Follow these phases in order.
+The user has structural concerns about distractor-lab. Follow these phases in order.
 
 ## Phase 1: Collect concerns
 

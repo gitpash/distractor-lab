@@ -12,13 +12,13 @@
 
 | Criterion | Assessment |
 |-----------|------------|
-| Relevance to gabor-svelte | medium — uses Gabor patches and spatial frequencies, but studies fMRI decoding of depth/resolution tasks, not visual training |
+| Relevance to distractor-lab | medium — uses Gabor patches and spatial frequencies, but studies fMRI decoding of depth/resolution tasks, not visual training |
 | Study design quality | weak (n=7, no control group, within-subjects fMRI only) |
 | Replication status | single study, preliminary |
 | Effect size | Decoding accuracy 60–65% (above chance 50%), highest in V3 and MT+ |
 | Actionable? | partial — spatial frequency manipulation technique is interesting; generalizability finding validates Gabor-based research |
 
-**Decision rationale**: The paper uses Gabor patches and tests spatial frequencies, which is topically relevant. However, it's an fMRI decoding study (not a visual training study), the sample is tiny (n=7), and the spatial frequencies tested (30–120 cpd) are far outside gabor-svelte's range. No training protocol to extract. Worth tracking for the generalizability argument.
+**Decision rationale**: The paper uses Gabor patches and tests spatial frequencies, which is topically relevant. However, it's an fMRI decoding study (not a visual training study), the sample is tiny (n=7), and the spatial frequencies tested (30–120 cpd) are far outside distractor-lab's range. No training protocol to extract. Worth tracking for the generalizability argument.
 
 **If revert**: A follow-up study with a visual training protocol (not fMRI decoding) using the same spatial frequency manipulation paradigm would be directly actionable.
 
@@ -26,7 +26,7 @@
 
 ## TL;DR
 
-This study used fMRI decoding to test whether task-dependent brain activity patterns trained on Gabor patch experiments could predict which task (depth vs. resolution) participants were performing with natural images. The decoder trained on Gabor patches successfully predicted task engagement in natural images, particularly in visual areas V3 and MT+. The finding validates that Gabor patch research generalizes to natural image processing, but the paradigm itself (fMRI decoding, not visual training) offers limited direct applicability to gabor-svelte.
+This study used fMRI decoding to test whether task-dependent brain activity patterns trained on Gabor patch experiments could predict which task (depth vs. resolution) participants were performing with natural images. The decoder trained on Gabor patches successfully predicted task engagement in natural images, particularly in visual areas V3 and MT+. The finding validates that Gabor patch research generalizes to natural image processing, but the paradigm itself (fMRI decoding, not visual training) offers limited direct applicability to distractor-lab.
 
 ---
 
@@ -34,7 +34,7 @@ This study used fMRI decoding to test whether task-dependent brain activity patt
 
 ### Stimulus
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Spatial frequency | 30, 60, 120 cpd | 1.5–12 cpd (lateral mode) | Paper uses much higher frequencies — extreme fine detail range |
 | Contrast range | Not systematically varied (fixed per condition) | 2–100% (adaptive) | Paper doesn't study contrast sensitivity |
@@ -50,7 +50,7 @@ This study used fMRI decoding to test whether task-dependent brain activity patt
 
 ### Training Protocol
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Session duration | ~5.6 min per session (24 trials × 336s) | Variable (user-controlled) | Paper: 24 trials/session |
 | Sessions/day | 1 (8 sessions total, within fMRI) | Unlimited | Paper: all within single fMRI session |
@@ -108,7 +108,7 @@ Note: These frequencies refer to the resolution levels of the stimuli, not the s
 
 ---
 
-## Comparison with gabor-svelte
+## Comparison with distractor-lab
 
 ### What We Already Have
 
@@ -120,14 +120,14 @@ Note: These frequencies refer to the resolution levels of the stimuli, not the s
 
 ### Gaps
 
-- **Resolution manipulation paradigm**: The paper manipulates display resolution (low-pass filtering + downsampling) rather than carrier spatial frequency. This is a different dimension than what gabor-svelte tests.
-- **Depth perception task**: gabor-svelte doesn't have a depth perception task — all tasks are orientation or contrast discrimination.
-- **High spatial frequencies**: gabor-svelte maxes out around 12 cpd; the paper tests 30–120 cpd.
-- **fMRI validation**: No way to validate neural engagement in gabor-svelte (expected — it's a web app, not a lab).
+- **Resolution manipulation paradigm**: The paper manipulates display resolution (low-pass filtering + downsampling) rather than carrier spatial frequency. This is a different dimension than what distractor-lab tests.
+- **Depth perception task**: distractor-lab doesn't have a depth perception task — all tasks are orientation or contrast discrimination.
+- **High spatial frequencies**: distractor-lab maxes out around 12 cpd; the paper tests 30–120 cpd.
+- **fMRI validation**: No way to validate neural engagement in distractor-lab (expected — it's a web app, not a lab).
 
 ### Opportunities
 
-- **Generalizability argument**: The paper provides evidence that Gabor-based findings generalize to natural images, which supports the scientific validity of Gabor-based visual training (the core premise of gabor-svelte).
+- **Generalizability argument**: The paper provides evidence that Gabor-based findings generalize to natural images, which supports the scientific validity of Gabor-based visual training (the core premise of distractor-lab).
 - **Resolution manipulation as new mode**: A "resolution" mode that manipulates display resolution (via downsampling) rather than carrier frequency could be a novel training dimension.
 - **Multi-area engagement**: The finding that V3 and MT+ are engaged by task-dependent processing (not just V1/V2) suggests that higher-order visual training modes may engage broader cortical networks.
 

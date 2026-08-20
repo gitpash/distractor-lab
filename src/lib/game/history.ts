@@ -1,6 +1,6 @@
 import type { HistoryEntry } from './types';
 
-const STORAGE_KEY = 'gabor-trainer-history';
+const STORAGE_KEY = 'distractor-lab-history';
 const MAX_ENTRIES = 50;
 
 export function saveHistory(entry: HistoryEntry) {

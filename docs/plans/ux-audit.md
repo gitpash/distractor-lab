@@ -1,4 +1,4 @@
-# UX Audit Plan — gabor-svelte
+# UX Audit Plan — distractor-lab
 
 ## Goal
 

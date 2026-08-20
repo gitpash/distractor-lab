@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-bun x sv@0.16.1 create --template minimal --types ts --add vitest="usages:unit,component" tailwindcss="plugins:typography" --install bun gabor-svelte
+bun x sv@0.16.1 create --template minimal --types ts --add vitest="usages:unit,component" tailwindcss="plugins:typography" --install bun distractor-lab
 ```
 
 ## Developing

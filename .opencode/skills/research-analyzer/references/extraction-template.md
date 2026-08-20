@@ -12,7 +12,7 @@
 
 | Criterion | Assessment |
 |-----------|------------|
-| Relevance to gabor-svelte | <high / medium / low — one line why> |
+| Relevance to distractor-lab | <high / medium / low — one line why> |
 | Study design quality | <strong (RCT, n>30) / adequate (n>15) / weak (n<15, no control) / poor> |
 | Replication status | <replicated / single study / preliminary> |
 | Effect size | <specific: Cohen's d / % improvement / "no effect"> |
@@ -34,7 +34,7 @@
 
 ### Stimulus
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Spatial frequency | | | |
 | Contrast range | | | |
@@ -50,7 +50,7 @@
 
 ### Training Protocol
 
-| Parameter | Paper Value | gabor-svelte Current | Gap / Notes |
+| Parameter | Paper Value | distractor-lab Current | Gap / Notes |
 |-----------|-------------|---------------------|-------------|
 | Session duration | | | |
 | Sessions/day | | | |
@@ -97,7 +97,7 @@
 
 ---
 
-## Comparison with gabor-svelte
+## Comparison with distractor-lab
 
 ### What We Already Have
 
@@ -142,4 +142,4 @@
 ## References
 
 - Paper DOI/URL
-- Related papers cited (if relevant to gabor-svelte)
+- Related papers cited (if relevant to distractor-lab)

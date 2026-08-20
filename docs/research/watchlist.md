@@ -1,6 +1,6 @@
 # Research Watchlist
 
-Track researchers, journals, products, and conferences relevant to gabor-svelte.
+Track researchers, journals, products, and conferences relevant to distractor-lab.
 Updated by the research agent during discovery runs.
 
 > Listed for research reference only; no affiliation with or endorsement by these products/companies.

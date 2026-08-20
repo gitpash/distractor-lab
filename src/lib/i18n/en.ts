@@ -1,6 +1,6 @@
 export default {
 	app: {
-		title: "Gabor Vision Trainer",
+		title: "Distractor Lab",
 		subtitle: "Train contrast sensitivity and visual acuity. Identify stripe orientation in Gabor patterns. Difficulty adapts automatically.",
 	},
 	modes: {

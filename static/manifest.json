@@ -1,6 +1,6 @@
 {
-	"name": "Gabor Vision Trainer",
-	"short_name": "Gabor",
+	"name": "Distractor Lab",
+	"short_name": "Distractor",
 	"description": "Train contrast sensitivity and visual acuity with adaptive Gabor patch exercises",
 	"start_url": "/",
 	"display": "standalone",

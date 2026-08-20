@@ -1,11 +1,11 @@
 ---
 name: research-analyzer
-description: Analyze vision science papers for practical parameters and recommendations relevant to Gabor patch visual perception training. Extracts stimulus parameters, training protocols, clinical findings, and produces actionable suggestions for gabor-svelte. Also supports proactive research discovery.
+description: Analyze vision science papers for practical parameters and recommendations relevant to Gabor patch visual perception training. Extracts stimulus parameters, training protocols, clinical findings, and produces actionable suggestions for distractor-lab. Also supports proactive research discovery.
 ---
 
 # Research Paper Analyzer
 
-Analyze scientific papers (vision science, psychophysics, clinical ophthalmology) and extract practical insights for gabor-svelte. Also supports discovering new research.
+Analyze scientific papers (vision science, psychophysics, clinical ophthalmology) and extract practical insights for distractor-lab. Also supports discovering new research.
 
 ## When to Use
 
@@ -25,7 +25,7 @@ Every paper that is reviewed — whether by user request or discovery — MUST r
 
 | Verdict | Meaning | Output |
 |---------|---------|--------|
-| **accept** | Has actionable insights for gabor-svelte | Full `<slug>.md` analysis |
+| **accept** | Has actionable insights for distractor-lab | Full `<slug>.md` analysis |
 | **defer** | Potentially relevant but not actionable now | One-liner in discovery-log + reference in references.md |
 | **reject** | Not relevant, poor quality, or nothing to learn | One-liner in discovery-log only |
 
@@ -77,7 +77,7 @@ Before extracting parameters, assess the paper's quality and relevance:
 | **Poor** | No methodology described, n unknown, or unvalidated measures |
 
 #### Relevance Assessment
-Ask: "Does this paper contain something gabor-svelte could actually use?"
+Ask: "Does this paper contain something distractor-lab could actually use?"
 - **High**: Uses Gabor patches for visual training, tests spatial frequencies, or measures contrast sensitivity
 - **Medium**: Related to visual training or psychophysics but different paradigm
 - **Low**: Topically adjacent but nothing actionable (e.g., pure retinal physiology)
@@ -104,7 +104,7 @@ Use the extraction checklist below. For each parameter, record:
 
 **Only for accept verdicts.** If verdict is reject/defer, skip full extraction.
 
-### 5. Compare with gabor-svelte
+### 5. Compare with distractor-lab
 
 Read the current implementation to understand what we already have:
 
@@ -113,7 +113,7 @@ Read the current implementation to understand what we already have:
 - `src/lib/game/calibration.ts` — display calibration approach
 - `src/lib/game/types.ts` — data structures
 
-Map each extracted parameter to the corresponding gabor-svelte code.
+Map each extracted parameter to the corresponding distractor-lab code.
 
 ### 6. Generate Recommendations
 
@@ -316,7 +316,7 @@ For each entry in references.md:
 
 1. **Check for new evidence**: Has the paper been replicated? Has new data appeared?
    - Use websearch: `"<paper title>" replication OR "similar study"`
-2. **Re-evaluate against current gabor-svelte**: Has our implementation changed since defer?
+2. **Re-evaluate against current distractor-lab**: Has our implementation changed since defer?
 3. **Decide**:
    - **Stay defer**: Still interesting but not actionable — keep in references.md
    - **Upgrade to accept**: New replication, or current implementation now makes it relevant — run full analysis

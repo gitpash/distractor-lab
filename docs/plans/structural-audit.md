@@ -1,4 +1,4 @@
-# Structural Audit: gabor-svelte
+# Structural Audit: distractor-lab
 
 **Date:** 2026-08-18
 **Trigger:** Overall structural integrity review (audit-structure skill)

@@ -1,6 +1,6 @@
 # Research References
 
-Papers that are relevant to gabor-svelte but not yet fully analyzed.
+Papers that are relevant to distractor-lab but not yet fully analyzed.
 The research agent adds entries here during discovery runs.
 Full analyses go to individual files in this directory.
 
