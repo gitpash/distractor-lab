@@ -2,13 +2,18 @@
     import { transition, getAnimClass, type AnimState } from "$lib/game/icon-animation";
 
     type IconName = "classic" | "frequency" | "noise" | "fine" | "combo" | "lateral";
-    let { name, active = false }: { name: IconName; active?: boolean } = $props();
+    let {
+        name,
+        active = false,
+        static: isStatic = false,
+    }: { name: IconName; active?: boolean; static?: boolean } = $props();
 
     let animState: AnimState = $state('idle');
     let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    // Sync with external active prop
+    // Sync with external active prop (skipped entirely for static rendering)
     $effect(() => {
+        if (isStatic) return;
         if (active && animState !== 'active') {
             animState = transition(animState, { type: 'SELECT' });
         } else if (!active && animState === 'active') {
@@ -17,6 +22,7 @@
     });
 
     function handlePointerEnter() {
+        if (isStatic) return;
         animState = transition(animState, { type: 'HOVER_START' });
         hoverTimeout = setTimeout(() => {
             animState = transition(animState, { type: 'HOVER_END', selected: active });
@@ -24,28 +30,32 @@
     }
 
     function handlePointerLeave() {
+        if (isStatic) return;
         if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
         animState = transition(animState, { type: 'HOVER_END', selected: active });
     }
 
     function handleAnimationEnd() {
+        if (isStatic) return;
         animState = transition(animState, { type: 'ANIMATION_END', selected: active });
     }
 
-    const animClass = $derived(getAnimClass(animState, name));
+    // Static mode: never animated, inherits color, sized by consumer font-size
+    const animClass = $derived(isStatic ? "" : getAnimClass(animState, name));
 </script>
 
 {#if name === "classic"}
     <!-- Gabor patch: concentric rings with center dot -->
     <svg
         class="pixel-icon icon-classic {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-rings">
             <!-- outer ring -->
@@ -114,13 +124,14 @@
     <!-- Vertical stripes that can wave -->
     <svg
         class="pixel-icon icon-frequency {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-stripes">
             <!-- stripe 1 -->
@@ -147,13 +158,14 @@
     <!-- Static noise pattern -->
     <svg
         class="pixel-icon icon-noise {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-static">
             <rect x="0" y="0" width="1" height="1" fill="currentColor"/>
@@ -227,13 +239,14 @@
     <!-- Two targets (2AFC) -->
     <svg
         class="pixel-icon icon-fine {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-target-a">
             <!-- left target outer -->
@@ -299,13 +312,14 @@
     <!-- Dice — classic random symbol -->
     <svg
         class="pixel-icon icon-combo {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-dice">
             <!-- outer border -->
@@ -326,13 +340,14 @@
     <!-- Lateral masking: 3 collinear patches (flankers + target) -->
     <svg
         class="pixel-icon icon-lateral {animClass}"
+        class:static={isStatic}
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        onpointerenter={handlePointerEnter}
-        onpointerleave={handlePointerLeave}
-        onanimationend={handleAnimationEnd}
+        aria-hidden="true"
+        onpointerenter={isStatic ? undefined : handlePointerEnter}
+        onpointerleave={isStatic ? undefined : handlePointerLeave}
+        onanimationend={isStatic ? undefined : handleAnimationEnd}
     >
         <g class="icon-flankers">
             <!-- left flanker -->
@@ -370,6 +385,19 @@
         color: var(--accent);
         image-rendering: pixelated;
         transition: transform 0.2s;
+    }
+
+    /* Static mode: calm monochrome glyph for text contexts (breadcrumbs).
+       Sized by font-size (1em) and inherits text color via currentColor. */
+    .pixel-icon.static {
+        display: inline-block;
+        vertical-align: -0.15em;
+        width: 1em;
+        height: 1em;
+        margin: 0;
+        color: inherit;
+        image-rendering: auto;
+        transition: none;
     }
 
     /* ===== HOVER: quick animation per mode ===== */

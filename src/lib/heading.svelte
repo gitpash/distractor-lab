@@ -1,10 +1,12 @@
 <script lang="ts">
     import { page } from "$app/state";
     import { setLanguage } from "./i18n";
+    import { t } from "svelte-i18n";
     import { MODES } from "$lib";
     import PixelIcon from "$lib/pixel-icons.svelte";
 
     let segments = $derived(page.url.pathname.split("/").filter(Boolean));
+    let isHome = $derived(page.url.pathname === "/");
 
     function formatSegment(segment: string) {
         return segment
@@ -21,27 +23,29 @@
     <nav aria-label="Breadcrumb" class="breadcrumbs">
         <ol>
             <li>
-                <a
-                    href={"/" + page.url.search}
-                    aria-disabled={page.url.pathname === "/"}>Home</a
-                >
+                {#if isHome}
+                    <span class="crumb-current" aria-current="page">{$t("actions.home")}</span>
+                {:else}
+                    <a href="/">{$t("actions.home")}</a>
+                {/if}
             </li>
 
             {#each segments as segment, index}
                 {@const url = `/${segments.slice(0, index + 1).join("/")}`}
                 {@const isLast = index === segments.length - 1}
+                {@const modeKey = `modes.${segment}.title`}
+                {@const label = isGameMode(segment)
+                    ? ($t(modeKey) === modeKey ? formatSegment(segment) : $t(modeKey))
+                    : formatSegment(segment)}
 
                 <li aria-current={isLast ? "page" : undefined}>
                     {#if isLast && isGameMode(segment)}
-                        <span class="game-mode-label">
-                            <PixelIcon name={segment as any} active />
-                            {formatSegment(segment)}
-                        </span>
+                        <span class="game-mode-label"><PixelIcon name={segment as any} static />{label}</span>
                     {:else if isLast}
-                        <span>{formatSegment(segment)}</span>
+                        <span>{label}</span>
                     {:else}
-                        <a href={url + page.url.search}>
-                            {formatSegment(segment)}
+                        <a href={url}>
+                            {label}
                         </a>
                     {/if}
                 </li>
@@ -71,9 +75,10 @@
     }
     .breadcrumbs {
         padding: 0;
+        font-size: var(--text-md);
     }
-    .heading :global(li),
-    .heading :global(a) {
+    nav.breadcrumbs li,
+    nav.breadcrumbs a {
         padding: 0;
     }
     .lang-switcher {
@@ -91,47 +96,45 @@
         list-style: none;
         padding: 0;
         margin: 0;
-        gap: 0.5rem;
-        align-items: center;
+        gap: var(--space-2);
+        align-items: baseline;
+    }
+    /* Pipe-operator separator, drawn in CSS (font-independent — no glyph
+       metrics and no Fira Code "|>" ligature). Masked to --border color. */
+    nav.breadcrumbs li::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 10px;
+        margin-right: var(--space-2);
+        background-color: var(--border);
+        vertical-align: baseline; /* bottom edge sits on the shared baseline */
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Crect x='0' y='0' width='1.5' height='10' rx='0.75'/%3E%3Cpath d='M2.75 2.5 5.75 5l-3 2.5' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Crect x='0' y='0' width='1.5' height='10' rx='0.75'/%3E%3Cpath d='M2.75 2.5 5.75 5l-3 2.5' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+    nav.breadcrumbs li:first-child::before {
+        content: none;
+        margin: 0;
     }
     nav.breadcrumbs a {
-        color: var(--text-muted);
+        color: var(--text-secondary);
         text-decoration: none;
-        transition: color 0.15s;
+        transition: color var(--duration-normal) ease;
     }
     @media (hover: hover) and (pointer: fine) {
         nav.breadcrumbs a:hover {
-            color: var(--accent);
+            color: var(--text-primary);
         }
     }
-    nav.breadcrumbs a[aria-disabled="true"] {
-        color: var(--text-muted);
-        pointer-events: none;
-    }
-    nav.breadcrumbs li::before {
-        content: "/";
-        margin-right: 0.5rem;
-        color: var(--text-muted);
-    }
-    nav.breadcrumbs li:first-child::before {
-        content: "";
-        margin: 0;
-    }
-    nav.breadcrumbs li span {
-        color: var(--text-secondary);
+    nav.breadcrumbs li span,
+    .crumb-current {
+        color: var(--text-primary);
     }
     .game-mode-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
         color: var(--text-primary);
         font-weight: 600;
     }
-    .game-mode-label :global(.pixel-icon) {
-        width: 24px;
-        height: 24px;
-        margin: 0;
-        image-rendering: auto;
-        shape-rendering: crispEdges;
+    .game-mode-label :global(svg.pixel-icon) {
+        margin-right: 6px;
     }
 </style>
