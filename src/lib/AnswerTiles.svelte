@@ -48,29 +48,39 @@
         </div>
     {:else}
         <div class="joystick">
-            <div class="row">
-                <span></span>
-                <button class="btn" onclick={() => onAnswer("horiz")} {@attach isIOS ? hapticTrigger : undefined}>
-                    <DirIcon direction="horiz" size={32} />
-                </button>
-                <span></span>
-            </div>
-            <div class="row">
-                <button class="btn" onclick={() => onAnswer("diag2")} {@attach isIOS ? hapticTrigger : undefined}>
-                    <DirIcon direction="diag2" size={32} />
-                </button>
-                <div class="center"></div>
-                <button class="btn" onclick={() => onAnswer("diag1")} {@attach isIOS ? hapticTrigger : undefined}>
-                    <DirIcon direction="diag1" size={32} />
-                </button>
-            </div>
-            <div class="row">
-                <span></span>
-                <button class="btn" onclick={() => onAnswer("vert")} {@attach isIOS ? hapticTrigger : undefined}>
-                    <DirIcon direction="vert" size={32} />
-                </button>
-                <span></span>
-            </div>
+            <button
+                class="btn btn-horiz"
+                onclick={() => onAnswer("horiz")}
+                aria-label="Horizontal"
+                {@attach isIOS ? hapticTrigger : undefined}
+            >
+                <DirIcon direction="horiz" size={32} />
+            </button>
+            <button
+                class="btn btn-diag2"
+                onclick={() => onAnswer("diag2")}
+                aria-label="135 degrees"
+                {@attach isIOS ? hapticTrigger : undefined}
+            >
+                <DirIcon direction="diag2" size={32} />
+            </button>
+            <div class="center" aria-hidden="true"></div>
+            <button
+                class="btn btn-diag1"
+                onclick={() => onAnswer("diag1")}
+                aria-label="45 degrees"
+                {@attach isIOS ? hapticTrigger : undefined}
+            >
+                <DirIcon direction="diag1" size={32} />
+            </button>
+            <button
+                class="btn btn-vert"
+                onclick={() => onAnswer("vert")}
+                aria-label="Vertical"
+                {@attach isIOS ? hapticTrigger : undefined}
+            >
+                <DirIcon direction="vert" size={32} />
+            </button>
         </div>
     {/if}
 </div>
@@ -113,22 +123,19 @@
         pointer-events: none;
     }
     .joystick {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        --tile: 52px;
+        display: grid;
+        grid-template-columns: repeat(3, var(--tile));
+        grid-template-rows: repeat(3, var(--tile));
+        gap: 8px;
     }
-    .row {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .row span {
-        width: 52px;
-        height: 52px;
-    }
+    .btn-horiz { grid-area: 1 / 2; }
+    .btn-diag2 { grid-area: 2 / 1; }
+    .btn-diag1 { grid-area: 2 / 3; }
+    .btn-vert  { grid-area: 3 / 2; }
     .btn {
-        width: 52px;
-        height: 52px;
+        width: var(--tile);
+        height: var(--tile);
         border-radius: 50%;
         background: var(--bg-secondary);
         border: 2px solid var(--border);
@@ -148,8 +155,10 @@
         box-shadow: 0 0 12px var(--accent-glow);
     }
     .center {
-        width: 12px;
-        height: 12px;
+        grid-area: 2 / 2;
+        width: 14px;
+        height: 14px;
+        place-self: center;
         border-radius: 50%;
         background: var(--bg-tertiary);
         border: 1px solid var(--border);

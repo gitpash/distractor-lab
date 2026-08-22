@@ -113,7 +113,7 @@
     .key-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        gap: 8px;
         width: 100%;
         max-width: 400px;
         margin-top: 12px;
@@ -121,7 +121,7 @@
     .key-grid-2afc {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 8px;
         width: 100%;
         max-width: 400px;
         margin-top: 12px;
@@ -130,6 +130,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         padding: 12px 8px;
         background: var(--bg-secondary);
@@ -167,12 +168,16 @@
         font-weight: 600;
         color: var(--text-secondary);
         letter-spacing: 0.3px;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .key-card.active .key-card-label {
         color: var(--accent);
     }
     .key-card kbd {
-        min-width: 32px;
+        min-width: 40px;
         height: 20px;
         font-size: var(--text-xs);
     }

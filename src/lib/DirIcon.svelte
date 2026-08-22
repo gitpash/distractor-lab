@@ -11,20 +11,20 @@
 {#if direction === "horiz"}
     <svg
         class="dir-icon {className}"
-        viewBox="0 0 16 4"
+        viewBox="0 0 16 16"
         width={size}
-        height={(size * 4) / 16}
+        height={size}
     >
-        <rect x="1" y="1" width="14" height="2" fill="currentColor" rx="1" />
+        <rect x="1" y="7" width="14" height="2" fill="currentColor" rx="1" />
     </svg>
 {:else if direction === "vert"}
     <svg
         class="dir-icon {className}"
-        viewBox="0 0 4 16"
-        width={(size * 4) / 16}
+        viewBox="0 0 16 16"
+        width={size}
         height={size}
     >
-        <rect x="1" y="1" width="2" height="14" fill="currentColor" rx="1" />
+        <rect x="7" y="1" width="2" height="14" fill="currentColor" rx="1" />
     </svg>
 {:else if direction === "diag1"}
     <!-- ╱ -->

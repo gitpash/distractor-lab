@@ -538,13 +538,17 @@
         flex-direction: column;
         align-items: center;
         gap: 6px;
+        width: 100%;
+        max-width: 400px;
     }
     .replay-hint {
         font-size: var(--text-xs);
         color: var(--text-muted);
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 4px;
+        width: 100%;
     }
     .replay-hint kbd {
         display: inline-flex;
